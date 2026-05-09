@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'kaneil-installer'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 #                                                                                    #
@@ -21,10 +21,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/YanIanZ/Pelican-Script/blob/main/LICENSE                  #
+# https://github.com/YanIanZ/KaNeil-Script/blob/main/LICENSE                  #
 #                                                                                    #
-# This script is not associated with the official Pelican Project.                   #
-# https://github.com/YanIanZ/Pelican-Script                                    #
+# This script is not associated with the official KaNeil Project.                   #
+# https://github.com/YanIanZ/KaNeil-Script                                    #
 #                                                                                    #
 ######################################################################################
 
@@ -46,14 +46,14 @@ export RM_WINGS=false
 main() {
   welcome ""
 
-  if [ -d "/var/www/pelican" ]; then
+  if [ -d "/var/www/kaneil" ]; then
     output "Panel installation has been detected."
     echo -e -n "* Do you want to remove panel? (y/N): "
     read -r RM_PANEL_INPUT
     [[ "$RM_PANEL_INPUT" =~ [Yy] ]] && RM_PANEL=true
   fi
 
-  if [ -d "/etc/pelican" ]; then
+  if [ -d "/etc/kaneil" ]; then
     output "Wings installation has been detected."
     warning "This will remove all the servers!"
     echo -e -n "* Do you want to remove Wings (daemon)? (y/N): "

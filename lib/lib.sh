@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'kaneil-installer'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 #                                                                                    #
@@ -21,10 +21,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/YanIanZ/Pelican-Script/blob/main/LICENSE                  #
+# https://github.com/YanIanZ/KaNeil-Script/blob/main/LICENSE                  #
 #                                                                                    #
-# This script is not associated with the official Pelican Project.                   #
-# https://github.com/YanIanZ/Pelican-Script                                    #
+# This script is not associated with the official KaNeil Project.                   #
+# https://github.com/YanIanZ/KaNeil-Script                                    #
 #                                                                                    #
 ######################################################################################
 
@@ -34,9 +34,9 @@ set -e
 export GITHUB_SOURCE=${GITHUB_SOURCE:-main}
 export SCRIPT_RELEASE=${SCRIPT_RELEASE:-canary}
 
-# Pelican versions
-export PELICAN_PANEL_VERSION=""
-export PELICAN_WINGS_VERSION=""
+# KaNeil versions
+export KANEIL_PANEL_VERSION=""
+export KANEIL_WINGS_VERSION=""
 
 # Path (export everything that is possible, doesn't matter that it exists already)
 export PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
@@ -49,10 +49,10 @@ export ARCH=""
 export SUPPORTED=false
 
 # download URLs
-export PANEL_DL_URL="https://github.com/pelican-dev/panel/releases/latest/download/panel.tar.gz"
-export WINGS_DL_BASE_URL="https://github.com/pelican-dev/wings/releases/latest/download/wings_linux_"
+export PANEL_DL_URL="https://github.com/kaneil-dev/panel/releases/latest/download/panel.tar.gz"
+export WINGS_DL_BASE_URL="https://github.com/kaneil-dev/wings/releases/latest/download/wings_linux_"
 export MARIADB_URL="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
-export GITHUB_BASE_URL=${GITHUB_BASE_URL:-"https://raw.githubusercontent.com/YanIanZ/Pelican-Script"}
+export GITHUB_BASE_URL=${GITHUB_BASE_URL:-"https://raw.githubusercontent.com/YanIanZ/KaNeil-Script"}
 export GITHUB_URL="$GITHUB_BASE_URL/$GITHUB_SOURCE"
 
 # Colors
@@ -122,18 +122,18 @@ welcome() {
   get_latest_versions
 
   print_brake 70
-  output "Pelican panel installation script @ $SCRIPT_RELEASE"
+  output "KaNeil panel installation script @ $SCRIPT_RELEASE"
   output ""
   output "Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>"
-  output "https://github.com/YanIanZ/Pelican-Script"
+  output "https://github.com/YanIanZ/KaNeil-Script"
   output ""
-  output "This script is not associated with the official Pelican Project."
+  output "This script is not associated with the official KaNeil Project."
   output ""
   output "Running $OS version $OS_VER."
   if [ "$1" == "panel" ]; then
-    output "Latest pelican/panel is $PELICAN_PANEL_VERSION"
+    output "Latest kaneil/panel is $KANEIL_PANEL_VERSION"
   elif [ "$1" == "wings" ]; then
-    output "Latest pelican/wings is $PELICAN_WINGS_VERSION"
+    output "Latest kaneil/wings is $KANEIL_WINGS_VERSION"
   fi
   print_brake 70
 }
@@ -148,8 +148,8 @@ get_latest_release() {
 
 get_latest_versions() {
   output "Retrieving release information..."
-  PELICAN_PANEL_VERSION=$(get_latest_release "pelican-dev/panel")
-  PELICAN_WINGS_VERSION=$(get_latest_release "pelican-dev/wings")
+  KANEIL_PANEL_VERSION=$(get_latest_release "kaneil-dev/panel")
+  KANEIL_WINGS_VERSION=$(get_latest_release "kaneil-dev/wings")
 }
 
 update_lib_source() {

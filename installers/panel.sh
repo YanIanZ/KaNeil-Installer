@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'kaneil-installer'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 #                                                                                    #
@@ -21,10 +21,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/YanIanZ/Pelican-Script/blob/main/LICENSE                  #
+# https://github.com/YanIanZ/KaNeil-Script/blob/main/LICENSE                  #
 #                                                                                    #
-# This script is not associated with the official Pelican Project.                   #
-# https://github.com/YanIanZ/Pelican-Script                                    #
+# This script is not associated with the official KaNeil Project.                   #
+# https://github.com/YanIanZ/KaNeil-Script                                    #
 #                                                                                    #
 ######################################################################################
 
@@ -43,7 +43,7 @@ FQDN="${FQDN:-localhost}"
 
 # Default MySQL credentials
 MYSQL_DB="${MYSQL_DB:-panel}"
-MYSQL_USER="${MYSQL_USER:-pelican}"
+MYSQL_USER="${MYSQL_USER:-kaneil}"
 MYSQL_PASSWORD="${MYSQL_PASSWORD:-$(gen_passwd 64)}"
 
 # Environment
@@ -91,9 +91,9 @@ install_composer() {
 }
 
 ptdl_dl() {
-  output "Downloading pelican panel files .. "
-  mkdir -p /var/www/pelican
-  cd /var/www/pelican || exit
+  output "Downloading kaneil panel files .. "
+  mkdir -p /var/www/kaneil
+  cd /var/www/kaneil || exit
 
   curl -Lo panel.tar.gz "$PANEL_DL_URL"
   tar -xzvf panel.tar.gz
@@ -101,7 +101,7 @@ ptdl_dl() {
 
   cp .env.example .env
 
-  success "Downloaded pelican panel files!"
+  success "Downloaded kaneil panel files!"
 }
 
 install_composer_deps() {
@@ -167,10 +167,10 @@ set_folder_permissions() {
   # if os is ubuntu or debian, we do this
   case "$OS" in
   debian | ubuntu)
-    chown -R www-data:www-data /var/www/pelican
+    chown -R www-data:www-data /var/www/kaneil
     ;;
   rocky | almalinux)
-    chown -R nginx:nginx /var/www/pelican
+    chown -R nginx:nginx /var/www/kaneil
     ;;
   esac
 }
@@ -180,30 +180,30 @@ insert_cronjob() {
 
   crontab -l | {
     cat
-    output "* * * * php /var/www/pelican/artisan schedule:run >> /dev/null 2>&1"
+    output "* * * * php /var/www/kaneil/artisan schedule:run >> /dev/null 2>&1"
   } | crontab -
 
   success "Cronjob installed!"
 }
 
-install_pelicanq() {
-  output "Installing pelicanq service.."
+install_kaneilq() {
+  output "Installing kaneilq service.."
 
-  curl -o /etc/systemd/system/pelican.service "$GITHUB_URL"/configs/pelican.service
+  curl -o /etc/systemd/system/kaneil.service "$GITHUB_URL"/configs/kaneil.service
 
   case "$OS" in
   debian | ubuntu)
-    sed -i -e "s@<user>@www-data@g" /etc/systemd/system/pelican.service
+    sed -i -e "s@<user>@www-data@g" /etc/systemd/system/kaneil.service
     ;;
   rocky | almalinux)
-    sed -i -e "s@<user>@nginx@g" /etc/systemd/system/pelican.service
+    sed -i -e "s@<user>@nginx@g" /etc/systemd/system/kaneil.service
     ;;
   esac
 
-  systemctl enable pelican.service
-  systemctl start pelican
+  systemctl enable kaneil.service
+  systemctl start kaneil
 
-  success "Installed pelicanq!"
+  success "Installed kaneilq!"
 }
 
 # -------- OS specific install functions ------- #
@@ -231,7 +231,7 @@ selinux_allow() {
 }
 
 php_fpm_conf() {
-  curl -o /etc/php-fpm.d/www-pelican.conf "$GITHUB_URL"/configs/www-pelican.conf
+  curl -o /etc/php-fpm.d/www-kaneil.conf "$GITHUB_URL"/configs/www-kaneil.conf
 
   systemctl enable php-fpm
   systemctl start php-fpm
@@ -374,7 +374,7 @@ configure_nginx() {
     CONFIG_PATH_ENABL="/etc/nginx/sites-enabled"
     ;;
   rocky | almalinux)
-    PHP_SOCKET="/var/run/php-fpm/pelican.sock"
+    PHP_SOCKET="/var/run/php-fpm/kaneil.sock"
     CONFIG_PATH_AVAIL="/etc/nginx/conf.d"
     CONFIG_PATH_ENABL="$CONFIG_PATH_AVAIL"
     ;;
@@ -382,15 +382,15 @@ configure_nginx() {
 
   rm -rf "$CONFIG_PATH_ENABL"/default
 
-  curl -o "$CONFIG_PATH_AVAIL"/pelican.conf "$GITHUB_URL"/configs/$DL_FILE
+  curl -o "$CONFIG_PATH_AVAIL"/kaneil.conf "$GITHUB_URL"/configs/$DL_FILE
 
-  sed -i -e "s@<domain>@${FQDN}@g" "$CONFIG_PATH_AVAIL"/pelican.conf
+  sed -i -e "s@<domain>@${FQDN}@g" "$CONFIG_PATH_AVAIL"/kaneil.conf
 
-  sed -i -e "s@<php_socket>@${PHP_SOCKET}@g" "$CONFIG_PATH_AVAIL"/pelican.conf
+  sed -i -e "s@<php_socket>@${PHP_SOCKET}@g" "$CONFIG_PATH_AVAIL"/kaneil.conf
 
   case "$OS" in
   ubuntu | debian)
-    ln -sf "$CONFIG_PATH_AVAIL"/pelican.conf "$CONFIG_PATH_ENABL"/pelican.conf
+    ln -sf "$CONFIG_PATH_AVAIL"/kaneil.conf "$CONFIG_PATH_ENABL"/kaneil.conf
     ;;
   esac
 
@@ -414,7 +414,7 @@ perform_install() {
   configure
   set_folder_permissions
   insert_cronjob
-  install_pelicanq
+  install_kaneilq
   configure_nginx
   [ "$CONFIGURE_LETSENCRYPT" == true ] && letsencrypt
 

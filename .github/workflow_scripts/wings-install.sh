@@ -4,7 +4,7 @@ set -e
 
 ######################################################################################
 #                                                                                    #
-# Project 'pelican-installer'                                                        #
+# Project 'kaneil-installer'                                                        #
 #                                                                                    #
 # Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
 #                                                                                    #
@@ -21,15 +21,15 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/YanIanZ/Pelican-Script/blob/main/LICENSE                  #
+# https://github.com/YanIanZ/KaNeil-Script/blob/main/LICENSE                  #
 #                                                                                    #
-# This script is not associated with the official Pelican Project.                   #
-# https://github.com/YanIanZ/Pelican-Script                                    #
+# This script is not associated with the official KaNeil Project.                   #
+# https://github.com/YanIanZ/KaNeil-Script                                    #
 #                                                                                    #
 ######################################################################################
 
 export GITHUB_SOURCE="main"
-export GITHUB_BASE_URL="https://raw.githubusercontent.com/YanIanZ/Pelican-Script"
+export GITHUB_BASE_URL="https://raw.githubusercontent.com/YanIanZ/KaNeil-Script"
 export CONFIGURE_FIREWALL=true
 export CONFIGURE_DBHOST=true
 export INSTALL_MARIADB=true

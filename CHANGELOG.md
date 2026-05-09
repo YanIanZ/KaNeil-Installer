@@ -10,7 +10,7 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Changed
 
-- lib: Update GitHub API calls to use correct `pelican-dev` organization name.
+- lib: Update GitHub API calls to use correct `kaneil-dev` organization name.
 - lib: Remove deprecated Debian 10 (Buster) support.
 - lib: Remove deprecated AlmaLinux 8 and Rocky Linux 8 support.
 - uninstall: Replace legacy `centos` references with `rocky | almalinux` case statements.
