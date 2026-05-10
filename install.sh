@@ -21,16 +21,16 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/YanIanZ/KaNeil-Script/blob/main/LICENSE                  #
+# https://github.com/YanIanZ/KaNeil-Installer/blob/main/LICENSE                  #
 #                                                                                    #
 # This script is not associated with the official KaNeil Project.                   #
-# https://github.com/YanIanZ/KaNeil-Script                                    #
+# https://github.com/YanIanZ/KaNeil-Installer                                    #
 #                                                                                    #
 ######################################################################################
 
 export GITHUB_SOURCE="main"
 export SCRIPT_RELEASE="v2.0.0"
-export GITHUB_BASE_URL="https://raw.githubusercontent.com/YanIanZ/KaNeil-Script"
+export GITHUB_BASE_URL="https://raw.githubusercontent.com/YanIanZ/KaNeil-Installer"
 
 LOG_PATH="/var/log/kaneil-installer.log"
 

@@ -21,10 +21,10 @@ set -e
 #   You should have received a copy of the GNU General Public License                #
 #   along with this program.  If not, see <https://www.gnu.org/licenses/>.           #
 #                                                                                    #
-# https://github.com/YanIanZ/KaNeil-Script/blob/main/LICENSE                  #
+# https://github.com/YanIanZ/KaNeil-Installer/blob/main/LICENSE                  #
 #                                                                                    #
 # This script is not associated with the official KaNeil Project.                   #
-# https://github.com/YanIanZ/KaNeil-Script                                    #
+# https://github.com/YanIanZ/KaNeil-Installer                                    #
 #                                                                                    #
 ######################################################################################
 
@@ -52,7 +52,7 @@ export SUPPORTED=false
 export PANEL_DL_URL="https://github.com/kaneil-dev/panel/releases/latest/download/panel.tar.gz"
 export SHIP_DL_BASE_URL="https://github.com/kaneil-dev/ship/releases/latest/download/ship_linux_"
 export MARIADB_URL="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
-export GITHUB_BASE_URL=${GITHUB_BASE_URL:-"https://raw.githubusercontent.com/YanIanZ/KaNeil-Script"}
+export GITHUB_BASE_URL=${GITHUB_BASE_URL:-"https://raw.githubusercontent.com/YanIanZ/KaNeil-Installer"}
 export GITHUB_URL="$GITHUB_BASE_URL/$GITHUB_SOURCE"
 
 # Colors
@@ -125,7 +125,7 @@ welcome() {
   output "KaNeil panel installation script @ $SCRIPT_RELEASE"
   output ""
   output "Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>"
-  output "https://github.com/YanIanZ/KaNeil-Script"
+  output "https://github.com/YanIanZ/KaNeil-Installer"
   output ""
   output "This script is not associated with the official KaNeil Project."
   output ""
