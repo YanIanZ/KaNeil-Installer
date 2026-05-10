@@ -49,8 +49,8 @@ export ARCH=""
 export SUPPORTED=false
 
 # download URLs
-export PANEL_DL_URL="https://github.com/kaneil-dev/panel/releases/latest/download/panel.tar.gz"
-export SHIP_DL_BASE_URL="https://github.com/kaneil-dev/ship/releases/latest/download/ship_linux_"
+export PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz"
+export SHIP_DL_BASE_URL="https://github.com/YanIanZ/KaNeil-Ship/releases/latest/download/ship_linux_"
 export MARIADB_URL="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 export GITHUB_BASE_URL=${GITHUB_BASE_URL:-"https://raw.githubusercontent.com/YanIanZ/KaNeil-Installer"}
 export GITHUB_URL="$GITHUB_BASE_URL/$GITHUB_SOURCE"
@@ -124,7 +124,7 @@ welcome() {
   print_brake 70
   output "KaNeil panel installation script @ $SCRIPT_RELEASE"
   output ""
-  output "Copyright (C) 2018 - 2024, Vilhelm Prytz, <vilhelm@prytznet.se>"
+  output "Copyright (C) 2018 - 2026, Vilhelm Prytz, <vilhelm@prytznet.se>"
   output "https://github.com/YanIanZ/KaNeil-Installer"
   output ""
   output "This script is not associated with the official KaNeil Project."
@@ -148,8 +148,8 @@ get_latest_release() {
 
 get_latest_versions() {
   output "Retrieving release information..."
-  KANEIL_PANEL_VERSION=$(get_latest_release "kaneil-dev/panel")
-  KANEIL_SHIP_VERSION=$(get_latest_release "kaneil-dev/ship")
+  KANEIL_PANEL_VERSION=$(get_latest_release "YanIanZ/KaNeil-Panel")
+  KANEIL_SHIP_VERSION=$(get_latest_release "YanIanZ/KaNeil-Ship")
 }
 
 update_lib_source() {
@@ -267,7 +267,7 @@ install_packages() {
   ubuntu | debian)
     eval apt-get -y $args install "$1"
     ;;
-  rocky | alma)
+  rocky | almalinux)
     eval dnf -y $args install "$1"
     ;;
   esac
@@ -357,7 +357,7 @@ ask_firewall() {
       eval "$__resultvar="'true'""
     fi
     ;;
-  rocky | alma)
+  rocky | almalinux)
     echo -e -n "* Do you want to automatically configure firewall-cmd (firewall)? (y/N): "
     read -r CONFIRM_FIREWALL_CMD
 
@@ -384,10 +384,10 @@ install_firewall() {
     success "Enabled Uncomplicated Firewall (UFW)"
 
     ;;
-  rocky | alma)
+  rocky | almalinux)
 
     output ""
-    output "Installing FirewallD"+
+    output "Installing FirewallD"
 
     if ! [ -x "$(command -v firewall-cmd)" ]; then
       install_packages "firewalld" true
@@ -409,7 +409,7 @@ firewall_allow_ports() {
     done
     ufw --force reload
     ;;
-  rocky | alma)
+  rocky | almalinux)
     for port in $1; do
       firewall-cmd --zone=public --add-port="$port"/tcp --permanent
     done
@@ -537,7 +537,7 @@ debian)
   [ "$OS_VER_MAJOR" == "12" ] && SUPPORTED=true
   export DEBIAN_FRONTEND=noninteractive
   ;;
-rocky | alma)
+rocky | almalinux)
   [ "$OS_VER_MAJOR" == "9" ] && SUPPORTED=true
   ;;
 *)

@@ -6,7 +6,7 @@ PartOf=docker.service
 
 [Service]
 User=root
-WorkingDirectory=/etc/pelican
+WorkingDirectory=/etc/kaneil
 LimitNOFILE=4096
 PIDFile=/var/run/ship/daemon.pid
 ExecStart=/usr/local/bin/ship

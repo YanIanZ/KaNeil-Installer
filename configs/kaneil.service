@@ -1,8 +1,8 @@
-# Pelican Queue File
+# KaNeil Queue File
 # ----------------------------------
 
 [Unit]
-Description=Pelican Queue Worker
+Description=KaNeil Queue Worker
 After=redis-server.service
 
 [Service]
@@ -11,7 +11,7 @@ After=redis-server.service
 User=<user>
 Group=<user>
 Restart=always
-ExecStart=/usr/bin/php /var/www/pelican/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3
+ExecStart=/usr/bin/php /var/www/kaneil/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3
 StartLimitInterval=180
 StartLimitBurst=30
 RestartSec=5s

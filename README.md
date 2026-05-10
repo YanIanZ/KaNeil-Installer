@@ -1,4 +1,4 @@
-# :bird: kaneil-installer
+# KaNeil Installer
 
 ![Test Panel](https://github.com/YanIanZ/KaNeil-Installer/actions/workflows/panel.yml/badge.svg)
 ![Test Ship](https://github.com/YanIanZ/KaNeil-Installer/actions/workflows/ship.yml/badge.svg)
@@ -26,13 +26,11 @@ List of supported installation setups for panel and Ship (installations supporte
 
 | Operating System | Version | Supported          | PHP Version |
 | ---------------- | ------- | ------------------ | ----------- |
-| Ubuntu           | 20.04   | :white_check_mark: | 8.4         |
-|                  | 22.04   | :white_check_mark: | 8.4         |
-|                  | 24.04   | :white_check_mark: | 8.4         |
-| Debian           | 11      | :white_check_mark: | 8.4         |
-|                  | 12      | :white_check_mark: | 8.4         |
-| Rocky Linux      | 9       | :white_check_mark: | 8.4         |
-| AlmaLinux        | 9       | :white_check_mark: | 8.4         |
+| Ubuntu           | 24.04   | :white_check_mark: | 8.5         |
+| Debian           | 11      | :white_check_mark: | 8.5         |
+|                  | 12      | :white_check_mark: | 8.5         |
+| Rocky Linux      | 9       | :white_check_mark: | 8.5         |
+| AlmaLinux        | 9       | :white_check_mark: | 8.5         |
 
 ## Using the installation scripts
 
@@ -82,7 +80,7 @@ Then you can use `vagrant ssh <name of machine>` to SSH into the box. The projec
 
 ### Creating a release
 
-In `install.sh` github source and script release variables should change every release. Firstly, update the `CHANGELOG.md` so that the release date and release tag are both displayed. No changes should be made to the changelog points themselves. Secondly, update `GITHUB_SOURCE` and `SCRIPT_RELEASE` in `install.sh`. Finally, you can now push a commit with the message `Release vX.Y.Z`. Create a release on GitHub. See [this commit](https://github.com/YanIanZ/KaNeil-Installer/commit/90aaae10785f1032fdf90b216a4a8d8ca64e6d44) for reference.
+In `install.sh` github source and script release variables should change every release. Firstly, update the `CHANGELOG.md` so that the release date and release tag are both displayed. No changes should be made to the changelog points themselves. Secondly, update `GITHUB_SOURCE` and `SCRIPT_RELEASE` in `install.sh`. Finally, you can now push a commit with the message `Release vX.Y.Z`. Create a release on GitHub.
 
 ## Contributors ✨
 
