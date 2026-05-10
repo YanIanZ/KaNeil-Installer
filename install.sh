@@ -58,14 +58,13 @@ source /tmp/lib.sh
 execute() {
   echo -e "\n\n* kaneil-installer $(date) \n\n" >>$LOG_PATH
 
-  [[ "$1" == *"canary"* ]] && export GITHUB_SOURCE="main" && export SCRIPT_RELEASE="canary"
   update_lib_source
 
   # Update scripts run directly without UI
   if [[ "$1" == "update-panel" ]] || [[ "$1" == "update-ship" ]]; then
     bash <(curl -sSL "$GITHUB_URL/installers/$1.sh") |& tee -a $LOG_PATH
   else
-    run_ui "${1//_canary/}" |& tee -a $LOG_PATH
+    run_ui "$1" |& tee -a $LOG_PATH
   fi
 
   if [[ -n $2 ]]; then
@@ -91,12 +90,8 @@ while [ "$done" == false ]; do
     "Update the panel"
     "Update Ship"
     "Update both panel and ship [3] and [4]"
-    # "Uninstall panel or ship\n"
 
-    "Install panel with canary version of the script (the versions that lives in main, may be broken!)"
-    "Install Ship with canary version of the script (the versions that lives in main, may be broken!)"
-    "Install both [7] and [8] on the same machine (ship script runs after panel)"
-    "Uninstall panel or ship with canary version of the script (the versions that lives in main, may be broken!)"
+    "Uninstall panel or ship"
   )
 
   actions=(
@@ -106,12 +101,8 @@ while [ "$done" == false ]; do
     "update-panel"
     "update-ship"
     "update-panel;update-ship"
-    # "uninstall"
 
-    "panel_canary"
-    "ship_canary"
-    "panel_canary;ship_canary"
-    "uninstall_canary"
+    "uninstall"
   )
 
   output "What would you like to do?"

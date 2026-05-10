@@ -13,57 +13,85 @@ if [ ! -f "/var/www/kaneil/artisan" ]; then
   exit 1
 fi
 
-output "Backing up .env file..."
-cp /var/www/kaneil/.env /tmp/kaneil.env.backup
-
-output "Downloading latest panel release..."
 PANEL_DIR=/var/www/kaneil
-BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
 
-# Back up current installation
+output "Putting panel in maintenance mode..."
+cd $PANEL_DIR
+php artisan down 2>/dev/null || true
+
+output "Clearing old caches..."
+php artisan config:clear 2>/dev/null || true
+php artisan route:clear 2>/dev/null || true
+php artisan view:clear 2>/dev/null || true
+php artisan cache:clear 2>/dev/null || true
+
+output "Backing up .env file..."
+cp $PANEL_DIR/.env /tmp/kaneil.env.backup
+
+BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
 cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
 output "Backup saved to $BACKUP_DIR"
 
-output "Downloading $PANEL_DL_URL..."
+output "Downloading latest panel release..."
 cd $PANEL_DIR
 rm -f panel.tar.gz
-curl -Lo panel.tar.gz "$PANEL_DL_URL"
+curl -sSL -o panel.tar.gz "$PANEL_DL_URL"
 
-output "Extracting panel..."
-tar -xzf panel.tar.gz
+output "Extracting panel (overwriting old files)..."
+tar -xzf panel.tar.gz --overwrite
 rm -f panel.tar.gz
 
 output "Restoring .env file..."
 cp /tmp/kaneil.env.backup $PANEL_DIR/.env
 rm -f /tmp/kaneil.env.backup
 
-# Run migrations
 output "Updating composer dependencies..."
-composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -5
+if ! composer install --no-dev --optimize-autoloader --no-interaction 2>&1; then
+  error "Composer update failed. Rolling back..."
+  rm -rf $PANEL_DIR/*
+  cp -r $BACKUP_DIR/* $PANEL_DIR/
+  php artisan up 2>/dev/null || true
+  exit 1
+fi
 
 output "Running database migrations..."
-php artisan migrate --force 2>&1 | tail -5
+if ! php artisan migrate --force 2>&1; then
+  error "Migrations failed. Check logs."
+fi
 
-output "Clearing caches..."
-php artisan optimize:clear 2>&1 | tail -2
+output "Clearing all caches..."
+php artisan config:clear 2>/dev/null || true
+php artisan route:clear 2>/dev/null || true
+php artisan view:clear 2>/dev/null || true
+php artisan cache:clear 2>/dev/null || true
+php artisan optimize:clear 2>/dev/null || true
 
-# Set permissions
 output "Setting permissions..."
-chmod -R 755 storage bootstrap/cache
+chmod -R 755 storage bootstrap/cache 2>/dev/null || true
+chown -R nginx:nginx storage bootstrap/cache 2>/dev/null || true
 
 # Update crontab
-if ! crontab -l | grep -q "schedule:run"; then
-  output "Re-installing cronjob..."
-  crontab -l | { cat; echo "* * * * * php $PANEL_DIR/artisan schedule:run >> /dev/null 2>&1"; } | crontab -
+if ! crontab -l 2>/dev/null | grep -q "schedule:run"; then
+  output "Installing cronjob..."
+  crontab -l 2>/dev/null | { cat; echo "* * * * * php $PANEL_DIR/artisan schedule:run >> /dev/null 2>&1"; } | crontab -
 fi
 
-# Restart queue worker
+# Restart services
 if systemctl is-active --quiet kaneil 2>/dev/null; then
   output "Restarting KaNeil queue worker..."
-  systemctl restart kaneil
+  systemctl restart kaneil 2>/dev/null || true
 fi
+
+if systemctl is-active --quiet nginx 2>/dev/null; then
+  output "Reloading nginx..."
+  systemctl reload nginx 2>/dev/null || true
+fi
+
+output "Bringing panel out of maintenance mode..."
+php artisan up 2>/dev/null || true
 
 output ""
 success "KaNeil Panel updated successfully!"
-output "Panel backup saved at: $BACKUP_DIR"
+output "Backup saved at: $BACKUP_DIR"
+output "If errors persist, check logs: tail -100 /var/www/kaneil/storage/logs/laravel.log"
 output ""
