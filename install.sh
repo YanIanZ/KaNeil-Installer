@@ -60,6 +60,17 @@ execute() {
 
   update_lib_source
 
+  if [[ "$1" == "update-panel-experimental" ]] || [[ "$1" == "panel-experimental" ]]; then
+    PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/download/experimental-v2.0-EX/panel.tar.gz"
+    export PANEL_DL_URL
+    if [[ "$1" == "panel-experimental" ]]; then
+      bash <(curl -sSL "$GITHUB_URL/installers/panel.sh") |& tee -a $LOG_PATH
+    else
+      bash <(curl -sSL "$GITHUB_URL/installers/update-panel.sh") |& tee -a $LOG_PATH
+    fi
+    return
+  fi
+
   # Update scripts run directly without UI
   if [[ "$1" == "update-panel" ]] || [[ "$1" == "update-ship" ]]; then
     bash <(curl -sSL "$GITHUB_URL/installers/$1.sh") |& tee -a $LOG_PATH
@@ -90,6 +101,8 @@ while [ "$done" == false ]; do
     "Update the panel"
     "Update Ship"
     "Update both panel and ship [3] and [4]"
+    "Install experimental panel (v2.0-EX / Galleon UI)"
+    "Update to experimental panel (v2.0-EX)"
 
     "Uninstall panel or ship"
   )
@@ -101,6 +114,8 @@ while [ "$done" == false ]; do
     "update-panel"
     "update-ship"
     "update-panel;update-ship"
+    "panel-experimental"
+    "update-panel-experimental"
 
     "uninstall"
   )

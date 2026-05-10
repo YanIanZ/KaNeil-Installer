@@ -51,6 +51,10 @@ BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
 output "Creating backup at $BACKUP_DIR..."
 cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
 
+if [ -z "$PANEL_DL_URL" ]; then
+  PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz"
+fi
+
 output "Downloading latest panel release to /tmp..."
 cd /tmp
 rm -f panel.tar.gz

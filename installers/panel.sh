@@ -90,6 +90,10 @@ install_composer() {
   success "Composer installed!"
 }
 
+if [ -z "$PANEL_DL_URL" ]; then
+  PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz"
+fi
+
 ptdl_dl() {
   output "Downloading kaneil panel files .. "
   mkdir -p /var/www/kaneil
