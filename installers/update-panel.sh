@@ -97,6 +97,16 @@ chmod -R 755 storage bootstrap/cache 2>/dev/null || true
 chown -R nginx:nginx storage bootstrap/cache 2>/dev/null || true
 chown -R nginx:nginx storage/logs 2>/dev/null || true
 
+# Restart PHP-FPM to clear OPcache
+output "Restarting PHP-FPM to clear OPcache..."
+if systemctl is-active --quiet php8.5-fpm 2>/dev/null; then
+  systemctl restart php8.5-fpm 2>/dev/null || true
+elif systemctl is-active --quiet php8.4-fpm 2>/dev/null; then
+  systemctl restart php8.4-fpm 2>/dev/null || true
+elif systemctl is-active --quiet php-fpm 2>/dev/null; then
+  systemctl restart php-fpm 2>/dev/null || true
+fi
+
 # Update crontab
 if ! crontab -l 2>/dev/null | grep -q "schedule:run"; then
   output "Installing cronjob..."
