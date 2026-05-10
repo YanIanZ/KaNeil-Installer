@@ -57,8 +57,12 @@ rm -f /tmp/kaneil.env.backup
 mkdir -p $PANEL_DIR/storage/framework/views $PANEL_DIR/storage/framework/cache $PANEL_DIR/storage/framework/sessions $PANEL_DIR/storage/logs $PANEL_DIR/storage/app
 
 output "Updating composer dependencies..."
-if ! composer install --no-dev --optimize-autoloader --no-interaction 2>&1; then
-  error "Composer update failed. Rolling back..."
+COMPOSER_OUTPUT=$(composer install --no-dev --optimize-autoloader --no-interaction 2>&1)
+COMPOSER_EXIT=$?
+if [ $COMPOSER_EXIT -ne 0 ]; then
+  error "Composer update failed (exit $COMPOSER_EXIT):"
+  echo "$COMPOSER_OUTPUT" | tail -20
+  error "Rolling back..."
   rm -rf $PANEL_DIR/*
   cp -r $BACKUP_DIR/* $PANEL_DIR/
   php artisan up 2>/dev/null || true
@@ -66,20 +70,32 @@ if ! composer install --no-dev --optimize-autoloader --no-interaction 2>&1; then
 fi
 
 output "Running database migrations..."
-if ! php artisan migrate --force 2>&1; then
-  error "Migrations failed. Check logs."
+MIGRATE_OUTPUT=$(php artisan migrate --force 2>&1)
+MIGRATE_EXIT=$?
+if [ $MIGRATE_EXIT -ne 0 ]; then
+  error "Migrations failed (exit $MIGRATE_EXIT):"
+  echo "$MIGRATE_OUTPUT" | tail -10
 fi
+
+output "Publishing filament assets..."
+php artisan filament:assets 2>/dev/null || true
+php artisan filament:upgrade 2>/dev/null || true
+
+output "Rebuilding optimized autoload..."
+composer dump-autoload -o 2>/dev/null || true
 
 output "Clearing all caches..."
 php artisan config:clear 2>/dev/null || true
 php artisan route:clear 2>/dev/null || true
 php artisan view:clear 2>/dev/null || true
 php artisan cache:clear 2>/dev/null || true
+php artisan event:clear 2>/dev/null || true
 php artisan optimize:clear 2>/dev/null || true
 
 output "Setting permissions..."
 chmod -R 755 storage bootstrap/cache 2>/dev/null || true
 chown -R nginx:nginx storage bootstrap/cache 2>/dev/null || true
+chown -R nginx:nginx storage/logs 2>/dev/null || true
 
 # Update crontab
 if ! crontab -l 2>/dev/null | grep -q "schedule:run"; then
@@ -104,5 +120,16 @@ php artisan up 2>/dev/null || true
 output ""
 success "KaNeil Panel updated successfully!"
 output "Backup saved at: $BACKUP_DIR"
-output "If errors persist, check logs: tail -100 /var/www/kaneil/storage/logs/laravel.log"
+
+output ""
+output "Running health check..."
+if php artisan about 2>&1 | grep -q 'KaNeil'; then
+  success "Panel health check passed!"
+else
+  error "Panel health check failed. Checking logs..."
+  echo "--- Last 20 lines of laravel.log ---"
+  tail -20 $PANEL_DIR/storage/logs/laravel.log 2>/dev/null || echo "No log file found."
+  echo "--- PHP errors ---"
+  php -r "require '$PANEL_DIR/vendor/autoload.php';" 2>&1 | head -3
+fi
 output ""
