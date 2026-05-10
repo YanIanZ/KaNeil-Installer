@@ -29,25 +29,30 @@ output "Backing up .env file..."
 cp $PANEL_DIR/.env /tmp/kaneil.env.backup
 
 BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
+output "Creating backup at $BACKUP_DIR..."
 cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
-output "Backup saved to $BACKUP_DIR"
 
-output "Downloading latest panel release..."
-cd $PANEL_DIR
+output "Downloading latest panel release to /tmp..."
+cd /tmp
 rm -f panel.tar.gz
 curl -sSL -o panel.tar.gz "$PANEL_DL_URL"
 
+if [ ! -f panel.tar.gz ] || [ $(stat -c%s panel.tar.gz 2>/dev/null || stat -f%z panel.tar.gz 2>/dev/null || echo 0) -lt 100000 ]; then
+  error "Failed to download panel.tar.gz or file too small"
+  exit 1
+fi
+output "Downloaded panel.tar.gz successfully"
+
 output "Removing old files (keeping .env)..."
-# Delete everything except .env, storage/logs, and the fresh tar
-find . -mindepth 1 -maxdepth 1 ! -name '.env' ! -name 'panel.tar.gz' ! -name 'storage' -exec rm -rf {} +
-# Clean storage but keep logs
+cd $PANEL_DIR
+find . -mindepth 1 -maxdepth 1 ! -name '.env' ! -name 'storage' -exec rm -rf {} + 2>/dev/null || true
 rm -rf storage/framework/views/* storage/framework/cache/* storage/framework/sessions/* 2>/dev/null || true
 rm -rf bootstrap/cache/* 2>/dev/null || true
 rm -rf vendor 2>/dev/null || true
 
 output "Extracting fresh panel..."
-tar -xzf panel.tar.gz
-rm -f panel.tar.gz
+tar -xzf /tmp/panel.tar.gz
+rm -f /tmp/panel.tar.gz
 
 output "Restoring .env file..."
 cp /tmp/kaneil.env.backup $PANEL_DIR/.env
