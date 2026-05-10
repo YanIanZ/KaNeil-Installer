@@ -1,5 +1,7 @@
 # KaNeil Installer
 
+> **Forked from [Pelican Installer](https://github.com/pelican-dev/pelican-installer)** 
+
 ![Test Panel](https://github.com/YanIanZ/KaNeil-Installer/actions/workflows/panel.yml/badge.svg)
 ![Test Ship](https://github.com/YanIanZ/KaNeil-Installer/actions/workflows/ship.yml/badge.svg)
 ![Shellcheck](https://github.com/YanIanZ/KaNeil-Installer/actions/workflows/shellcheck.yml/badge.svg)
