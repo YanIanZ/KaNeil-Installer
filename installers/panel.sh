@@ -152,12 +152,17 @@ EOF
   # Run database migrations
   php artisan migrate --seed --force
 
-  # Create admin user account
-  php artisan p:user:make \
-    --email="$user_email" \
-    --username="$user_username" \
-    --password="$user_password" \
-    --admin=1
+  # Create admin user account (skip if already exists)
+  EXISTING_USER=$(php artisan tinker --execute="echo App\Models\User::where('username', '$user_username')->orWhere('email', '$user_email')->count();" 2>/dev/null || echo "0")
+  if [ "${EXISTING_USER:-0}" -eq 0 ]; then
+    php artisan p:user:make \
+      --email="$user_email" \
+      --username="$user_username" \
+      --password="$user_password" \
+      --admin=1
+  else
+    output "Admin user '$user_username' already exists. Skipping creation."
+  fi
 
   success "Configured environment!"
 }
