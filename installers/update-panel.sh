@@ -81,9 +81,6 @@ output "Publishing filament assets..."
 php artisan filament:assets 2>/dev/null || true
 php artisan filament:upgrade 2>/dev/null || true
 
-output "Rebuilding optimized autoload..."
-timeout 60 composer dump-autoload -o 2>/dev/null || output "Autoload rebuild skipped (timeout or failed — non-critical)"
-
 output "Clearing all caches..."
 php artisan config:clear 2>/dev/null || true
 php artisan route:clear 2>/dev/null || true
