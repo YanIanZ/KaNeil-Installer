@@ -97,6 +97,17 @@ ptdl_dl() {
 
   curl -Lo panel.tar.gz "$PANEL_DL_URL"
   tar -xzvf panel.tar.gz
+
+  # Ensure all required framework directories exist before composer scripts run.
+  # post-autoload-dump triggers filament:upgrade which needs view.compiled path.
+  mkdir -p storage/framework/views \
+           storage/framework/cache/data \
+           storage/framework/sessions \
+           storage/framework/testing \
+           storage/logs \
+           storage/app/public \
+           bootstrap/cache
+
   chmod -R 755 storage bootstrap/cache
 
   cp .env.example .env
@@ -107,7 +118,21 @@ ptdl_dl() {
 install_composer_deps() {
   output "Installing composer dependencies.."
   [ "$OS" == "rocky" ] || [ "$OS" == "alma" ] && export PATH=/usr/local/bin:$PATH
-  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
+
+  # Two-phase install: skip post-scripts on first pass (before APP_KEY exists),
+  # generate APP_KEY + setup env, then run scripts manually.
+  COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-scripts --no-interaction
+
+  # Generate APP_KEY now so filament:upgrade etc. have a valid env to work with.
+  # (Will be re-checked by configure() but safe to call twice.)
+  if ! grep -q '^APP_KEY=base64:' .env 2>/dev/null; then
+    php artisan key:generate --force 2>/dev/null || true
+  fi
+
+  # Now run the post-autoload scripts that we skipped.
+  COMPOSER_ALLOW_SUPERUSER=1 composer run-script post-autoload-dump --no-interaction || \
+    output "Warning: post-autoload-dump scripts had non-fatal errors (continuing)"
+
   success "Installed composer dependencies!"
 }
 
