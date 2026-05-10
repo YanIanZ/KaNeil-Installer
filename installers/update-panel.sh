@@ -37,13 +37,24 @@ cd $PANEL_DIR
 rm -f panel.tar.gz
 curl -sSL -o panel.tar.gz "$PANEL_DL_URL"
 
-output "Extracting panel (overwriting old files)..."
-tar -xzf panel.tar.gz --overwrite
+output "Removing old files (keeping .env)..."
+# Delete everything except .env, storage/logs, and the fresh tar
+find . -mindepth 1 -maxdepth 1 ! -name '.env' ! -name 'panel.tar.gz' ! -name 'storage' -exec rm -rf {} +
+# Clean storage but keep logs
+rm -rf storage/framework/views/* storage/framework/cache/* storage/framework/sessions/* 2>/dev/null || true
+rm -rf bootstrap/cache/* 2>/dev/null || true
+rm -rf vendor 2>/dev/null || true
+
+output "Extracting fresh panel..."
+tar -xzf panel.tar.gz
 rm -f panel.tar.gz
 
 output "Restoring .env file..."
 cp /tmp/kaneil.env.backup $PANEL_DIR/.env
 rm -f /tmp/kaneil.env.backup
+
+# Create storage dirs if missing after extract
+mkdir -p $PANEL_DIR/storage/framework/views $PANEL_DIR/storage/framework/cache $PANEL_DIR/storage/framework/sessions $PANEL_DIR/storage/logs $PANEL_DIR/storage/app
 
 output "Updating composer dependencies..."
 if ! composer install --no-dev --optimize-autoloader --no-interaction 2>&1; then
