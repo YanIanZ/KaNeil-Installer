@@ -116,7 +116,7 @@ ask_database_firewall() {
 main() {
   # check if we can detect an already existing installation
   if [ -d "/etc/kaneil" ]; then
-    warning "The script has detected that you already have KaNeil wings on your system! You cannot run the script multiple times, it will fail!"
+    warning "The script has detected that you already have KaNeil ship on your system! You cannot run the script multiple times, it will fail!"
     echo -e -n "* Are you sure you want to proceed? (y/N): "
     read -r CONFIRM_PROCEED
     if [[ ! "$CONFIRM_PROCEED" =~ [Yy] ]]; then
@@ -125,18 +125,18 @@ main() {
     fi
   fi
 
-  welcome "wings"
+  welcome "ship"
 
   check_virt
 
   echo "* "
-  echo "* The installer will install Docker, required dependencies for Wings"
-  echo "* as well as Wings itself. But it's still required to create the node"
+  echo "* The installer will install Docker, required dependencies for Ship"
+  echo "* as well as Ship itself. But it's still required to create the node"
   echo "* on the panel and then place the configuration file on the node manually after"
   echo "* the installation has finished. Read more about this process on the"
-  echo "* official documentation: $(hyperlink 'https://kaneil.dev/docs/wings/optional-config')"
+  echo "* official documentation: $(hyperlink 'https://kaneil.dev/docs/ship/optional-config')"
   echo "* "
-  echo -e "* ${COLOR_RED}Note${COLOR_NC}: this script will not start Wings automatically (will install systemd service, not start it)."
+  echo -e "* ${COLOR_RED}Note${COLOR_NC}: this script will not start Ship automatically (will install systemd service, not start it)."
   echo -e "* ${COLOR_RED}Note${COLOR_NC}: this script will not enable swap (for docker)."
   print_brake 42
 
@@ -198,7 +198,7 @@ main() {
 
   read -r CONFIRM
   if [[ "$CONFIRM" =~ [Yy] ]]; then
-    run_installer "wings"
+    run_installer "ship"
   else
     error "Installation aborted."
     exit 1
@@ -208,21 +208,21 @@ main() {
 function goodbye {
   echo ""
   print_brake 70
-  echo "* Wings installation completed"
+  echo "* Ship installation completed"
   echo "*"
-  echo "* To continue, you need to configure Wings to run with your panel"
-  echo "* Please refer to the official guide, $(hyperlink 'https://kaneil.dev/docs/wings/optional-config')"
+  echo "* To continue, you need to configure Ship to run with your panel"
+  echo "* Please refer to the official guide, $(hyperlink 'https://kaneil.dev/docs/ship/optional-config')"
   echo "* "
   echo "* You can either copy the configuration file from the panel manually to /etc/kaneil/config.yml"
   echo "* or, you can use the \"auto deploy\" button from the panel and simply paste the command in this terminal"
   echo "* "
-  echo "* You can then start Wings manually to verify that it's working"
+  echo "* You can then start Ship manually to verify that it's working"
   echo "*"
-  echo "* sudo wings"
+  echo "* sudo ship"
   echo "*"
-  echo "* Once you have verified that it is working, use CTRL+C and then start Wings as a service (runs in the background)"
+  echo "* Once you have verified that it is working, use CTRL+C and then start Ship as a service (runs in the background)"
   echo "*"
-  echo "* systemctl start wings"
+  echo "* systemctl start ship"
   echo "*"
   echo -e "* ${COLOR_RED}Note${COLOR_NC}: It is recommended to enable swap (for Docker, read more about it in official documentation)."
   [ "$CONFIGURE_FIREWALL" == false ] && echo -e "* ${COLOR_RED}Note${COLOR_NC}: If you haven't configured your firewall, ports 8080 and 2022 needs to be open."

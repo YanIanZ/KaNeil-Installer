@@ -86,7 +86,7 @@ dep_install() {
       $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
     ;;
 
-  rocky | almalinux)
+  rocky | alma)
     install_packages "dnf-utils"
     dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 
@@ -112,28 +112,28 @@ dep_install() {
 }
 
 ptdl_dl() {
-  echo "* Downloading KaNeil Wings.. "
+  echo "* Downloading KaNeil Ship.. "
 
   mkdir -p /etc/kaneil
-  curl -L -o /usr/local/bin/wings "$WINGS_DL_BASE_URL$ARCH"
+  curl -L -o /usr/local/bin/ship "$SHIP_DL_BASE_URL$ARCH"
 
-  chmod u+x /usr/local/bin/wings
+  chmod u+x /usr/local/bin/ship
 
-  success "KaNeil Wings downloaded successfully"
+  success "KaNeil Ship downloaded successfully"
 }
 
 systemd_file() {
   output "Installing systemd service.."
 
-  curl -o /etc/systemd/system/wings.service "$GITHUB_URL"/configs/wings.service
+  curl -o /etc/systemd/system/ship.service "$GITHUB_URL"/configs/ship.service
   systemctl daemon-reload
-  systemctl enable wings
+  systemctl enable ship
 
   success "Installed systemd service!"
 }
 
 firewall_ports() {
-  output "Opening port 22 (SSH), 8080 (Wings Port), 2022 (Wings SFTP Port)"
+  output "Opening port 22 (SSH), 8080 (Ship Port), 2022 (Ship SFTP Port)"
 
   [ "$CONFIGURE_LETSENCRYPT" == true ] && firewall_allow_ports "80 443"
   [ "$CONFIGURE_DB_FIREWALL" == true ] && firewall_allow_ports "3306"
@@ -177,7 +177,7 @@ configure_mysql() {
     debian | ubuntu)
       sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mariadb.conf.d/50-server.cnf
       ;;
-    rocky | almalinux)
+    rocky | alma)
       sed -ne 's/^#bind-address=0.0.0.0$/bind-address=0.0.0.0/' /etc/my.cnf.d/mariadb-server.cnf
       ;;
     esac
@@ -191,7 +191,7 @@ configure_mysql() {
 # --------------- Main functions --------------- #
 
 perform_install() {
-  output "Installing kaneil wings.."
+  output "Installing kaneil ship.."
   dep_install
   ptdl_dl
   systemd_file

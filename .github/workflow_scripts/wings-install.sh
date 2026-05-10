@@ -43,4 +43,4 @@ update_repos
 
 install_packages "curl"
 
-bash /vagrant/installers/wings.sh
+bash /vagrant/installers/ship.sh

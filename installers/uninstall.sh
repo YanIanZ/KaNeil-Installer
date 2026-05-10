@@ -39,7 +39,7 @@ fi
 # ------------------ Variables ----------------- #
 
 RM_PANEL="${RM_PANEL:-true}"
-RM_WINGS="${RM_WINGS:-true}"
+RM_SHIP="${RM_SHIP:-true}"
 
 # ---------- Uninstallation functions ---------- #
 
@@ -52,7 +52,7 @@ rm_panel_files() {
     rm -f /etc/nginx/sites-available/kaneil.conf
     ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
     ;;
-  rocky | almalinux)
+  rocky | alma)
     rm -f /etc/nginx/conf.d/kaneil.conf
     ;;
   esac
@@ -68,15 +68,15 @@ rm_docker_containers() {
   success "Removed docker containers and images."
 }
 
-rm_wings_files() {
-  output "Removing wings files..."
+rm_ship_files() {
+  output "Removing ship files..."
 
-  # stop and remove wings service
-  systemctl disable --now wings
-  rm -rf /etc/systemd/system/wings.service
+  # stop and remove ship service
+  systemctl disable --now ship
+  rm -rf /etc/systemd/system/ship.service
 
-  rm -rf /etc/kaneil /usr/local/bin/wings /var/lib/kaneil
-  success "Removed wings files."
+  rm -rf /etc/kaneil /usr/local/bin/ship /var/lib/kaneil
+  success "Removed ship files."
 }
 
 rm_services() {
@@ -87,7 +87,7 @@ rm_services() {
   debian | ubuntu)
     systemctl disable --now redis-server
     ;;
-  rocky | almalinux)
+  rocky | alma)
     systemctl disable --now redis
     systemctl disable --now php-fpm
     rm -rf /etc/php-fpm.d/www-kaneil.conf
@@ -163,8 +163,8 @@ perform_uninstall() {
   [ "$RM_PANEL" == true ] && rm_cron
   [ "$RM_PANEL" == true ] && rm_database
   [ "$RM_PANEL" == true ] && rm_services
-  [ "$RM_WINGS" == true ] && rm_docker_containers
-  [ "$RM_WINGS" == true ] && rm_wings_files
+  [ "$RM_SHIP" == true ] && rm_docker_containers
+  [ "$RM_SHIP" == true ] && rm_ship_files
 
   return 0
 }

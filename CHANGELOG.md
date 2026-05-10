@@ -6,7 +6,7 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Added
 
-- panel/wings: Add support for Ubuntu 24.04 (Noble Numbat).
+- panel/ship: Add support for Ubuntu 24.04 (Noble Numbat).
 
 ### Changed
 
@@ -22,7 +22,7 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Added
 
-- [#416](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/416) panel/wings: add support for Debian 12 (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#416](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/416) panel/ship: add support for Debian 12 (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ## v0.12.3 (released on 2023-02-18)
 
@@ -35,8 +35,8 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Fixed
 
-- [#366](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/366) panel/lib/wings Fix ask_database_external, some shellcheck issues, broken support for Alma Linux and Rocky Linux (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
-- [#377](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/377) wings: Fix wings script calling wrong firewall function (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#366](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/366) panel/lib/ship Fix ask_database_external, some shellcheck issues, broken support for Alma Linux and Rocky Linux (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#377](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/377) ship: Fix ship script calling wrong firewall function (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ## v0.12.1 (released on 2022-12-01)
 
@@ -47,18 +47,18 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 ## v0.12.0 (released on 2022-12-01)
 
 - [#353](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/353) panel: Update php version to 8.1 (thanks to [@drylian](https://github.com/drylian) for contributing!).
-- [#315](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/315) panel/wings: Split the scripts into separate components, UI functions and installation functions. This is a major overhaul, expect bugs! (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
-- [#283](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/283) panel/wings: Introduce support for Rocky Linux and AlmaLinux, also remove support for CentOS and Debian 9 (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#315](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/315) panel/ship: Split the scripts into separate components, UI functions and installation functions. This is a major overhaul, expect bugs! (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#283](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/283) panel/ship: Introduce support for Rocky Linux and AlmaLinux, also remove support for CentOS and Debian 9 (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ## v0.11.0 (released on 2022-05-17)
 
 ### Added
 
-- [#322](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/322) panel/wings: Added support for Ubuntu 22.04.
+- [#322](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/322) panel/ship: Added support for Ubuntu 22.04.
 
 ### Fixed
 
-- [#262](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/262) wings: Fix a bug that would cause the script to fail because /usr/sbin missing in $PATH when the script tries to run virt-what (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#262](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/262) ship: Fix a bug that would cause the script to fail because /usr/sbin missing in $PATH when the script tries to run virt-what (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ## v0.10.0 (released on 2022-03-14)
 
@@ -72,9 +72,9 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Changed
 
-- [#267](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/267) wings: Rewrite some of the database host functionality to work with remote MySQL clients (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
-- [#288](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/288) wings: Avoid usage of deprecated apt-key during Docker installation.
-- [#289](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/289) Replace old references to "daemon" with Wings.
+- [#267](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/267) ship: Rewrite some of the database host functionality to work with remote MySQL clients (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#288](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/288) ship: Avoid usage of deprecated apt-key during Docker installation.
+- [#289](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/289) Replace old references to "daemon" with Ship.
 
 ## v0.9.0 (released on 2021-12-05)
 
@@ -84,9 +84,9 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Fixed
 
-- [#229](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/229) wings: Fixed a bug that would cause the process of obtaining a Let's Encrypt certificate to fail on CentOS 7 and CentOS 8 due to the missing `epel-release` package (thanks [@Linux123123](https://github.com/Linux123123) for reporting!).
+- [#229](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/229) ship: Fixed a bug that would cause the process of obtaining a Let's Encrypt certificate to fail on CentOS 7 and CentOS 8 due to the missing `epel-release` package (thanks [@Linux123123](https://github.com/Linux123123) for reporting!).
 - [#264](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/264) install: Fix incorrectly labeled setup option (thanks [@NoahvdAa](https://github.com/NoahvdAa) for contributing!).
-- [#266](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/266) panel/wings: Usage of hyphens in database names/usernames is not supported by the script. The script now checks if the credentials provided by the user contain a hyphen (thanks [@GoudronViande24](https://github.com/GoudronViande24) for reporting!).
+- [#266](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/266) panel/ship: Usage of hyphens in database names/usernames is not supported by the script. The script now checks if the credentials provided by the user contain a hyphen (thanks [@GoudronViande24](https://github.com/GoudronViande24) for reporting!).
 
 ## v0.8.1 (released on 2021-08-28)
 
@@ -98,8 +98,8 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Added
 
-- [#220](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/220) wings: Add a feature that lets the user automatically create a user for "database host" (thanks [@sinjs](https://github.com/sinjs) for contributing!).
-- [#230](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/230) panel/wings: Added support for Debian 11 (bullseye) (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#220](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/220) ship: Add a feature that lets the user automatically create a user for "database host" (thanks [@sinjs](https://github.com/sinjs) for contributing!).
+- [#230](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/230) panel/ship: Added support for Debian 11 (bullseye) (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ## v0.7.1 (released on 2021-07-31)
 
@@ -113,12 +113,12 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 - [#193](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/193) lib/verify-fqdn: Fixed a minor typo, the word "Encrypt" was misspelled and is now fixed (thanks to [@Hey](https://github.com/Hey) for contributing!).
 - [#201](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/201) lib/verify-fqdn: Fixed so that CNAME records work as FQDN and are properly detected by the script (thanks to [@jobhh](https://github.com/jobhh) for contributing!).
-- [#200](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/200) wings: Fixed a bug that would cause the script to not detect unsupported virtualization (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#200](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/200) ship: Fixed a bug that would cause the script to not detect unsupported virtualization (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ### Added
 
-- [#81](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/81) wings: Added a feature that automatically skips the MariaDB question if MySQL/MariaDB is detected.
-- [#204](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/204) wings: Added support for arm64 (thanks to [@puiemonta1234](https://github.com/puiemonta1234) for contributing!).
+- [#81](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/81) ship: Added a feature that automatically skips the MariaDB question if MySQL/MariaDB is detected.
+- [#204](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/204) ship: Added support for arm64 (thanks to [@puiemonta1234](https://github.com/puiemonta1234) for contributing!).
 
 ## v0.6.0 (released on 2021-05-21)
 
@@ -128,18 +128,18 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Added
 
-- [#157](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/157) panel/wings: Added email validation. Emails are now validated using a regex before accepted as values (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
+- [#157](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/157) panel/ship: Added email validation. Emails are now validated using a regex before accepted as values (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
 
 ## v0.5.0 (released on 2021-05-15)
 
 ### Fixed
 
 - [#158](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/158) panel: Fixed a bug that would let users run the panel script on other CPU architectures than `x86_64`, script now prints a warning if the user is using anything but `x86_64` (thanks [@Linux123123](https://github.com/Linux123123) for contributing!).
-- [#176](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/176) wings: Fixed a broken link to the official documentation (thanks to [@sinmineryt](https://github.com/sinmineryt) for contributing!).
+- [#176](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/176) ship: Fixed a broken link to the official documentation (thanks to [@sinmineryt](https://github.com/sinmineryt) for contributing!).
 
 ### Changed
 
-- [#160](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/160) wings: Unsupported virtualization types no longer forcefully quit the script. An option to override the check has been added.
+- [#160](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/160) ship: Unsupported virtualization types no longer forcefully quit the script. An option to override the check has been added.
 
 ## v0.4.0 (released on 2021-03-16)
 
@@ -156,20 +156,20 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 
 ### Changed
 
-- [#129](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/129) wings: Clarify how to connect new Wings installation with the panel (using auto deploy).
-- [#153](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/153) panel/wings: Changed so that the script will no longer tell you to open firewall ports if you have enabled automatic firewall configuration.
+- [#129](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/129) ship: Clarify how to connect new Ship installation with the panel (using auto deploy).
+- [#153](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/153) panel/ship: Changed so that the script will no longer tell you to open firewall ports if you have enabled automatic firewall configuration.
 - [#153](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/153) panel: Remove deprecated third-party suggestions.
 
 ### Added
 
-- [#148](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/148) wings: Added so that the Wings installation script will now verify FQDN using `lib/verify-fqdn` if the user chooses to configure Let's Encrypt automatically.
+- [#148](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/148) ship: Added so that the Ship installation script will now verify FQDN using `lib/verify-fqdn` if the user chooses to configure Let's Encrypt automatically.
 
 ## v0.2.0 (released on 2021-01-18)
 
 ### Fixed
 
 - [#113](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/113) panel: Fixed a bug that would cause the script to exit due to failing to create a "bus connection". Related to [#115](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/115) as well.
-- [#135](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/135) panel/wings: Fixed so that the automatic ufw firewall configuration no longer requires confirming for the enable operation (user interaction after initial configuration is not intended behavior).
+- [#135](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/135) panel/ship: Fixed so that the automatic ufw firewall configuration no longer requires confirming for the enable operation (user interaction after initial configuration is not intended behavior).
 
 ### Changed
 
@@ -177,7 +177,7 @@ This project follows the [semantic versioning](https://semver.org) convention. C
 - [#100](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/100) panel: Refactor several different functions in panel script, removal of redundant variables and functions and general cleanup/restructure (thanks [@Linux123123](https://github.com/Linux123123)).
 - [#115](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/115) panel: Refactor timezone validation.
 - [#137](https://github.com/pterodactyl-installer/pterodactyl-installer/issues/137) panel: Removed ability to run `p:environment:mail` script since it's redundant.
-- [#139](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/139) wings: Refactor - replaced all `"$var"` with `[ "$var" == true ]` (thanks [@Linux123123](https://github.com/Linux123123)).
+- [#139](https://github.com/pterodactyl-installer/pterodactyl-installer/pull/139) ship: Refactor - replaced all `"$var"` with `[ "$var" == true ]` (thanks [@Linux123123](https://github.com/Linux123123)).
 
 ### Added
 

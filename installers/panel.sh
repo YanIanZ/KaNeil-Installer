@@ -106,7 +106,7 @@ ptdl_dl() {
 
 install_composer_deps() {
   output "Installing composer dependencies.."
-  [ "$OS" == "rocky" ] || [ "$OS" == "almalinux" ] && export PATH=/usr/local/bin:$PATH
+  [ "$OS" == "rocky" ] || [ "$OS" == "alma" ] && export PATH=/usr/local/bin:$PATH
   COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader
   success "Installed composer dependencies!"
 }
@@ -169,7 +169,7 @@ set_folder_permissions() {
   debian | ubuntu)
     chown -R www-data:www-data /var/www/kaneil
     ;;
-  rocky | almalinux)
+  rocky | alma)
     chown -R nginx:nginx /var/www/kaneil
     ;;
   esac
@@ -195,7 +195,7 @@ install_kaneilq() {
   debian | ubuntu)
     sed -i -e "s@<user>@www-data@g" /etc/systemd/system/kaneil.service
     ;;
-  rocky | almalinux)
+  rocky | alma)
     sed -i -e "s@<user>@nginx@g" /etc/systemd/system/kaneil.service
     ;;
   esac
@@ -214,7 +214,7 @@ enable_services() {
     systemctl enable redis-server
     systemctl start redis-server
     ;;
-  rocky | almalinux)
+  rocky | alma)
     systemctl enable redis
     systemctl start redis
     ;;
@@ -293,7 +293,7 @@ dep_install() {
     [ "$CONFIGURE_LETSENCRYPT" == true ] && install_packages "certbot python3-certbot-nginx"
 
     ;;
-  rocky | almalinux)
+  rocky | alma)
     alma_rocky_dep
 
     # Install dependencies
@@ -373,7 +373,7 @@ configure_nginx() {
     CONFIG_PATH_AVAIL="/etc/nginx/sites-available"
     CONFIG_PATH_ENABL="/etc/nginx/sites-enabled"
     ;;
-  rocky | almalinux)
+  rocky | alma)
     PHP_SOCKET="/var/run/php-fpm/kaneil.sock"
     CONFIG_PATH_AVAIL="/etc/nginx/conf.d"
     CONFIG_PATH_ENABL="$CONFIG_PATH_AVAIL"

@@ -1,5 +1,5 @@
 [Unit]
-Description=Wings Daemon
+Description=Ship Daemon
 After=docker.service
 Requires=docker.service
 PartOf=docker.service
@@ -8,8 +8,8 @@ PartOf=docker.service
 User=root
 WorkingDirectory=/etc/pelican
 LimitNOFILE=4096
-PIDFile=/var/run/wings/daemon.pid
-ExecStart=/usr/local/bin/wings
+PIDFile=/var/run/ship/daemon.pid
+ExecStart=/usr/local/bin/ship
 Restart=on-failure
 StartLimitInterval=180
 StartLimitBurst=30

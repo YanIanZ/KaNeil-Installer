@@ -39,7 +39,7 @@ fi
 # ------------------ Variables ----------------- #
 
 export RM_PANEL=false
-export RM_WINGS=false
+export RM_SHIP=false
 
 # --------------- Main functions --------------- #
 
@@ -54,14 +54,14 @@ main() {
   fi
 
   if [ -d "/etc/kaneil" ]; then
-    output "Wings installation has been detected."
+    output "Ship installation has been detected."
     warning "This will remove all the servers!"
-    echo -e -n "* Do you want to remove Wings (daemon)? (y/N): "
-    read -r RM_WINGS_INPUT
-    [[ "$RM_WINGS_INPUT" =~ [Yy] ]] && RM_WINGS=true
+    echo -e -n "* Do you want to remove Ship (daemon)? (y/N): "
+    read -r RM_SHIP_INPUT
+    [[ "$RM_SHIP_INPUT" =~ [Yy] ]] && RM_SHIP=true
   fi
 
-  if [ "$RM_PANEL" == false ] && [ "$RM_WINGS" == false ]; then
+  if [ "$RM_PANEL" == false ] && [ "$RM_SHIP" == false ]; then
     error "Nothing to uninstall!"
     exit 1
   fi
@@ -82,14 +82,14 @@ main() {
 summary() {
   print_brake 30
   output "Uninstall panel? $RM_PANEL"
-  output "Uninstall wings? $RM_WINGS"
+  output "Uninstall ship? $RM_SHIP"
   print_brake 30
 }
 
 goodbye() {
   print_brake 62
   [ "$RM_PANEL" == true ] && output "Panel uninstallation completed"
-  [ "$RM_WINGS" == true ] && output "Wings uninstallation completed"
+  [ "$RM_SHIP" == true ] && output "Ship uninstallation completed"
   output "Thank you for using this script."
   print_brake 62
 }

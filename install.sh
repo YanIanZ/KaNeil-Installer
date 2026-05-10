@@ -80,25 +80,25 @@ done=false
 while [ "$done" == false ]; do
   options=(
     "Install the panel"
-    "Install Wings"
-    "Install both [0] and [1] on the same machine (wings script runs after panel)"
-    # "Uninstall panel or wings\n"
+    "Install Ship"
+    "Install both [0] and [1] on the same machine (ship script runs after panel)"
+    # "Uninstall panel or ship\n"
 
     "Install panel with canary version of the script (the versions that lives in main, may be broken!)"
-    "Install Wings with canary version of the script (the versions that lives in main, may be broken!)"
-    "Install both [3] and [4] on the same machine (wings script runs after panel)"
-    "Uninstall panel or wings with canary version of the script (the versions that lives in main, may be broken!)"
+    "Install Ship with canary version of the script (the versions that lives in main, may be broken!)"
+    "Install both [3] and [4] on the same machine (ship script runs after panel)"
+    "Uninstall panel or ship with canary version of the script (the versions that lives in main, may be broken!)"
   )
 
   actions=(
     "panel"
-    "wings"
-    "panel;wings"
+    "ship"
+    "panel;ship"
     # "uninstall"
 
     "panel_canary"
-    "wings_canary"
-    "panel_canary;wings_canary"
+    "ship_canary"
+    "panel_canary;ship_canary"
     "uninstall_canary"
   )
 

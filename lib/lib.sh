@@ -36,7 +36,7 @@ export SCRIPT_RELEASE=${SCRIPT_RELEASE:-canary}
 
 # KaNeil versions
 export KANEIL_PANEL_VERSION=""
-export KANEIL_WINGS_VERSION=""
+export KANEIL_SHIP_VERSION=""
 
 # Path (export everything that is possible, doesn't matter that it exists already)
 export PATH="$PATH:/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin"
@@ -50,7 +50,7 @@ export SUPPORTED=false
 
 # download URLs
 export PANEL_DL_URL="https://github.com/kaneil-dev/panel/releases/latest/download/panel.tar.gz"
-export WINGS_DL_BASE_URL="https://github.com/kaneil-dev/wings/releases/latest/download/wings_linux_"
+export SHIP_DL_BASE_URL="https://github.com/kaneil-dev/ship/releases/latest/download/ship_linux_"
 export MARIADB_URL="https://downloads.mariadb.com/MariaDB/mariadb_repo_setup"
 export GITHUB_BASE_URL=${GITHUB_BASE_URL:-"https://raw.githubusercontent.com/YanIanZ/KaNeil-Script"}
 export GITHUB_URL="$GITHUB_BASE_URL/$GITHUB_SOURCE"
@@ -117,7 +117,7 @@ hyperlink() {
   echo -e "\e]8;;${1}\a${1}\e]8;;\a"
 }
 
-# First argument is wings / panel / neither
+# First argument is ship / panel / neither
 welcome() {
   get_latest_versions
 
@@ -132,8 +132,8 @@ welcome() {
   output "Running $OS version $OS_VER."
   if [ "$1" == "panel" ]; then
     output "Latest kaneil/panel is $KANEIL_PANEL_VERSION"
-  elif [ "$1" == "wings" ]; then
-    output "Latest kaneil/wings is $KANEIL_WINGS_VERSION"
+  elif [ "$1" == "ship" ]; then
+    output "Latest kaneil/ship is $KANEIL_SHIP_VERSION"
   fi
   print_brake 70
 }
@@ -149,7 +149,7 @@ get_latest_release() {
 get_latest_versions() {
   output "Retrieving release information..."
   KANEIL_PANEL_VERSION=$(get_latest_release "kaneil-dev/panel")
-  KANEIL_WINGS_VERSION=$(get_latest_release "kaneil-dev/wings")
+  KANEIL_SHIP_VERSION=$(get_latest_release "kaneil-dev/ship")
 }
 
 update_lib_source() {
@@ -267,7 +267,7 @@ install_packages() {
   ubuntu | debian)
     eval apt-get -y $args install "$1"
     ;;
-  rocky | almalinux)
+  rocky | alma)
     eval dnf -y $args install "$1"
     ;;
   esac
@@ -357,7 +357,7 @@ ask_firewall() {
       eval "$__resultvar="'true'""
     fi
     ;;
-  rocky | almalinux)
+  rocky | alma)
     echo -e -n "* Do you want to automatically configure firewall-cmd (firewall)? (y/N): "
     read -r CONFIRM_FIREWALL_CMD
 
@@ -384,7 +384,7 @@ install_firewall() {
     success "Enabled Uncomplicated Firewall (UFW)"
 
     ;;
-  rocky | almalinux)
+  rocky | alma)
 
     output ""
     output "Installing FirewallD"+
@@ -409,7 +409,7 @@ firewall_allow_ports() {
     done
     ufw --force reload
     ;;
-  rocky | almalinux)
+  rocky | alma)
     for port in $1; do
       firewall-cmd --zone=public --add-port="$port"/tcp --permanent
     done
@@ -436,7 +436,7 @@ check_os_x86_64() {
   fi
 }
 
-# wings virtualization check
+# ship virtualization check
 check_virt() {
   output "Installing virt-what..."
 
@@ -529,9 +529,7 @@ esac
 
 case "$OS" in
 ubuntu)
-  [ "$OS_VER_MAJOR" == "20" ] && SUPPORTED=true
-  [ "$OS_VER_MAJOR" == "22" ] && SUPPORTED=true
-  [ "$OS_VER_MAJOR" == "24" ] && SUPPORTED=true
+      [ "$OS_VER_MAJOR" == "24" ] && SUPPORTED=true
   export DEBIAN_FRONTEND=noninteractive
   ;;
 debian)
@@ -539,7 +537,7 @@ debian)
   [ "$OS_VER_MAJOR" == "12" ] && SUPPORTED=true
   export DEBIAN_FRONTEND=noninteractive
   ;;
-rocky | almalinux)
+rocky | alma)
   [ "$OS_VER_MAJOR" == "9" ] && SUPPORTED=true
   ;;
 *)
