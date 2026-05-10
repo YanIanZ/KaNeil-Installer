@@ -39,6 +39,12 @@ cp /usr/local/bin/ship /usr/local/bin/ship.backup 2>/dev/null || true
 mv /tmp/ship_latest /usr/local/bin/ship
 chmod +x /usr/local/bin/ship
 
+# Remove old wings binary if it exists
+if [ -f "/usr/local/bin/wings" ]; then
+  rm -f /usr/local/bin/wings
+  output "Removed old wings binary"
+fi
+
 # Start ship service
 if systemctl is-enabled --quiet ship 2>/dev/null; then
   output "Starting Ship service..."
