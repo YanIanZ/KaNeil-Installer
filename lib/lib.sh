@@ -6,7 +6,7 @@ set -e
 #                                                                                    #
 # Project 'kaneil-installer'                                                        #
 #                                                                                    #
-# Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
+# Copyright (C) 2018 - 2025, YanIanZ                    #
 #                                                                                    #
 #   This program is free software: you can redistribute it and/or modify             #
 #   it under the terms of the GNU General Public License as published by             #
@@ -124,7 +124,7 @@ welcome() {
   print_brake 70
   output "KaNeil panel installation script @ $SCRIPT_RELEASE"
   output ""
-  output "Copyright (C) 2018 - 2026, Vilhelm Prytz, <vilhelm@prytznet.se>"
+  output "Copyright (C) 2018 - 2026, YanIanZ"
   output "https://github.com/YanIanZ/KaNeil-Installer"
   output ""
   output "This script is not associated with the official KaNeil Project."

@@ -6,7 +6,7 @@ set -e
 #                                                                                    #
 # Project 'kaneil-installer'                                                        #
 #                                                                                    #
-# Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>                    #
+# Copyright (C) 2018 - 2025, YanIanZ                    #
 #                                                                                    #
 #   This program is free software: you can redistribute it and/or modify             #
 #   it under the terms of the GNU General Public License as published by             #
@@ -97,7 +97,7 @@ ptdl_dl() {
 
   curl -Lo panel.tar.gz "$PANEL_DL_URL"
   tar -xzvf panel.tar.gz
-  chmod -R 755 storage/* bootstrap/cache/
+  chmod -R 755 storage bootstrap/cache
 
   cp .env.example .env
 

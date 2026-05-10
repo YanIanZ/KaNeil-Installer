@@ -84,9 +84,9 @@ In `install.sh` github source and script release variables should change every r
 
 ## Contributors ✨
 
-Copyright (C) 2018 - 2025, Vilhelm Prytz, <vilhelm@prytznet.se>, and contributors!
+Copyright (C) 2018 - 2025, YanIanZ, and contributors!
 
-- Created by [Vilhelm Prytz](https://github.com/vilhelmprytz)
+- Created by [YanIanZ](https://github.com/vilhelmprytz)
 - Maintained by [Linux123123](https://github.com/Linux123123)
 
 Thanks to the Discord moderators [sam1370](https://github.com/sam1370), [Linux123123](https://github.com/Linux123123) and [sinjs](https://github.com/sinjs) for helping on the Discord server!
