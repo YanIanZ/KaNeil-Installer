@@ -4,6 +4,25 @@ set -e
 
 source /tmp/lib.sh
 
+run_with_retry() {
+    local cmd="$1"
+    local max_attempts=3
+    local timeout_seconds=60
+    local attempt=1
+
+    while [ $attempt -le $max_attempts ]; do
+        output "Attempt $attempt of $max_attempts: $cmd"
+        if timeout $timeout_seconds bash -c "$cmd"; then
+            return 0
+        fi
+        attempt=$((attempt + 1))
+        if [ $attempt -le $max_attempts ]; then
+            sleep $((2 ** (attempt - 1)))
+        fi
+    done
+    return 1
+}
+
 output ""
 output "Starting KaNeil Panel Update..."
 
@@ -43,6 +62,14 @@ if [ ! -f panel.tar.gz ] || [ $(stat -c%s panel.tar.gz 2>/dev/null || stat -f%z 
 fi
 output "Downloaded panel.tar.gz successfully"
 
+# Verify tar archive is not corrupted
+if ! tar -tzf panel.tar.gz > /dev/null 2>&1; then
+  error "Downloaded panel.tar.gz is corrupted (tar -tzf failed)"
+  rm -f panel.tar.gz
+  exit 1
+fi
+output "Tar archive integrity verified"
+
 output "Removing old files (keeping .env)..."
 cd $PANEL_DIR
 find . -mindepth 1 -maxdepth 1 ! -name '.env' ! -name 'storage' -exec rm -rf {} + 2>/dev/null || true
@@ -61,11 +88,10 @@ rm -f /tmp/kaneil.env.backup
 # Create storage dirs if missing after extract
 mkdir -p $PANEL_DIR/storage/framework/views $PANEL_DIR/storage/framework/cache $PANEL_DIR/storage/framework/sessions $PANEL_DIR/storage/logs $PANEL_DIR/storage/app
 
-output "Updating composer dependencies..."
-COMPOSER_OUTPUT=$(composer install --no-dev --optimize-autoloader --no-interaction 2>&1)
-COMPOSER_EXIT=$?
-if [ $COMPOSER_EXIT -ne 0 ]; then
-  error "Composer update failed (exit $COMPOSER_EXIT):"
+output "Updating composer dependencies (with retry)..."
+if ! run_with_retry "cd $PANEL_DIR && composer install --no-dev --optimize-autoloader --no-interaction"; then
+  COMPOSER_OUTPUT=$(cd $PANEL_DIR && composer install --no-dev --optimize-autoloader --no-interaction 2>&1)
+  error "Composer update failed after 3 retries:"
   echo "$COMPOSER_OUTPUT" | tail -20
   error "Rolling back..."
   rm -rf $PANEL_DIR/*
@@ -74,11 +100,10 @@ if [ $COMPOSER_EXIT -ne 0 ]; then
   exit 1
 fi
 
-output "Running database migrations..."
-MIGRATE_OUTPUT=$(php artisan migrate --force 2>&1)
-MIGRATE_EXIT=$?
-if [ $MIGRATE_EXIT -ne 0 ]; then
-  error "Migrations failed (exit $MIGRATE_EXIT):"
+output "Running database migrations (with retry)..."
+if ! run_with_retry "cd $PANEL_DIR && timeout 120 php artisan migrate --force"; then
+  MIGRATE_OUTPUT=$(cd $PANEL_DIR && timeout 120 php artisan migrate --force 2>&1)
+  error "Migrations failed after 3 retries:"
   echo "$MIGRATE_OUTPUT" | tail -10
 fi
 
@@ -135,7 +160,7 @@ output "Backup saved at: $BACKUP_DIR"
 
 output ""
 output "Running health check..."
-if php artisan about 2>&1 | grep -q 'KaNeil'; then
+if timeout 30 php artisan about 2>&1 | grep -q 'KaNeil'; then
   success "Panel health check passed!"
 else
   error "Panel health check failed. Checking logs..."
