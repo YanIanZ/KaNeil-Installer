@@ -60,7 +60,13 @@ execute() {
 
   [[ "$1" == *"canary"* ]] && export GITHUB_SOURCE="main" && export SCRIPT_RELEASE="canary"
   update_lib_source
-  run_ui "${1//_canary/}" |& tee -a $LOG_PATH
+
+  # Update scripts run directly without UI
+  if [[ "$1" == "update-panel" ]] || [[ "$1" == "update-ship" ]]; then
+    bash <(curl -sSL "$GITHUB_URL/installers/$1.sh") |& tee -a $LOG_PATH
+  else
+    run_ui "${1//_canary/}" |& tee -a $LOG_PATH
+  fi
 
   if [[ -n $2 ]]; then
     echo -e -n "* Installation of $1 completed. Do you want to proceed to $2 installation? (y/N): "
@@ -82,11 +88,14 @@ while [ "$done" == false ]; do
     "Install the panel"
     "Install Ship"
     "Install both [0] and [1] on the same machine (ship script runs after panel)"
+    "Update the panel"
+    "Update Ship"
+    "Update both panel and ship [3] and [4]"
     # "Uninstall panel or ship\n"
 
     "Install panel with canary version of the script (the versions that lives in main, may be broken!)"
     "Install Ship with canary version of the script (the versions that lives in main, may be broken!)"
-    "Install both [3] and [4] on the same machine (ship script runs after panel)"
+    "Install both [7] and [8] on the same machine (ship script runs after panel)"
     "Uninstall panel or ship with canary version of the script (the versions that lives in main, may be broken!)"
   )
 
@@ -94,6 +103,9 @@ while [ "$done" == false ]; do
     "panel"
     "ship"
     "panel;ship"
+    "update-panel"
+    "update-ship"
+    "update-panel;update-ship"
     # "uninstall"
 
     "panel_canary"
