@@ -99,6 +99,36 @@ echo "=== 6. Reload nginx ==="
 systemctl reload nginx 2>/dev/null || true
 
 echo ""
+echo "=== 6a0. Rewrite stale ghcr.io/kaneil-dev/* image URIs (registry doesn't exist) ==="
+cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
+$mapFixed = 0; $svrFixed = 0;
+$rewrite = function(string $u): string { return str_replace("ghcr.io/kaneil-dev/", "ghcr.io/pterodactyl/", $u); };
+foreach (\App\Models\Map::all() as $m) {
+  $changed = false;
+  $imgs = $m->docker_images ?? [];
+  if (is_array($imgs)) {
+    $new = [];
+    foreach ($imgs as $k => $v) {
+      $nk = is_string($k) ? $rewrite($k) : $k;
+      $nv = is_string($v) ? $rewrite($v) : $v;
+      $new[$nk] = $nv;
+      if ($nk !== $k || $nv !== $v) $changed = true;
+    }
+    if ($changed) { $m->docker_images = $new; }
+  }
+  if (is_string($m->script_container) && str_contains($m->script_container, "kaneil-dev")) {
+    $m->script_container = $rewrite($m->script_container); $changed = true;
+  }
+  if ($changed) { $m->save(); $mapFixed++; }
+}
+foreach (\App\Models\Server::all() as $s) {
+  if (is_string($s->image) && str_contains($s->image, "kaneil-dev")) {
+    $s->image = $rewrite($s->image); $s->save(); $svrFixed++;
+  }
+}
+echo "Maps rewritten: $mapFixed, Vessels rewritten: $svrFixed\n";' 2>&1 | tail -5
+
+echo ""
 echo "=== 6a. Repair maps with reversed/invalid docker_images ==="
 cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
 $bad = 0; $fixed = 0;
