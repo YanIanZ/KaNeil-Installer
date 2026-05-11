@@ -67,6 +67,16 @@ else
 fi
 
 echo ""
+echo "=== 3b. Hot-patch ServerDetailsController (eggConfigurationService -> mapConfigurationService) ==="
+CTRL="$PANEL_DIR/app/Http/Controllers/Api/Remote/Servers/ServerDetailsController.php"
+if [ -f "$CTRL" ] && grep -q "eggConfigurationService" "$CTRL"; then
+  sed -i 's/eggConfigurationService/mapConfigurationService/g' "$CTRL"
+  echo "Patched $CTRL"
+else
+  echo "Already patched or file missing."
+fi
+
+echo ""
 echo "=== 4. Clear + rebuild panel config cache ==="
 cd "$PANEL_DIR"
 sudo -u "$WEB_USER" php artisan optimize:clear 2>&1 | tail -3 || php artisan optimize:clear 2>&1 | tail -3
