@@ -99,6 +99,47 @@ echo "=== 6. Reload nginx ==="
 systemctl reload nginx 2>/dev/null || true
 
 echo ""
+echo "=== 6a. Repair maps with reversed/invalid docker_images ==="
+cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
+$bad = 0; $fixed = 0;
+foreach (\App\Models\Map::all() as $m) {
+  $imgs = $m->docker_images ?? [];
+  if (!is_array($imgs) || empty($imgs)) continue;
+  $new = [];
+  foreach ($imgs as $k => $v) {
+    $label = (string) $k; $uri = is_string($v) ? $v : "";
+    // Detect reversed orientation: key looks like URI, value is human label
+    $keyLooksUri = (str_contains($label, "/") || str_contains($label, ":")) && !preg_match("/\s/", $label) && !preg_match("/[A-Z][a-z]+ ?\d/", $label);
+    $valLooksLabel = preg_match("/\s/", $uri) || preg_match("/^[A-Z][a-z]+ ?\d/", $uri);
+    if ($keyLooksUri && $valLooksLabel) { $new[$uri] = $label; continue; }
+    // Skip entries whose URI is plainly invalid
+    if ($uri === "" || preg_match("/\s/", $uri) || preg_match("/[A-Z]/", explode(":", $uri, 2)[0] ?? "")) continue;
+    $new[$label] = $uri;
+  }
+  if (empty($new)) $new = ["Java 21" => "ghcr.io/kaneil-dev/yolks:java_21"];
+  if ($new !== $imgs) { $m->docker_images = $new; $m->save(); $fixed++; }
+}
+echo "Maps repaired: $fixed\n";' 2>&1 | tail -10
+
+echo ""
+echo "=== 6a2. Repair vessels with invalid image (e.g. \"Java 21\" literal) ==="
+cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
+$fixed = 0;
+foreach (\App\Models\Server::with("map")->get() as $s) {
+  $img = (string) $s->image;
+  $invalid = $img === "" || preg_match("/\s/", $img) || preg_match("/[A-Z]/", explode(":", $img, 2)[0] ?? "");
+  if (!$invalid) continue;
+  $available = $s->map?->docker_images ?? [];
+  if (empty($available)) continue;
+  $first = null;
+  foreach ($available as $label => $uri) {
+    if (is_string($uri) && !preg_match("/\s/", $uri) && !preg_match("/[A-Z]/", explode(":", $uri, 2)[0] ?? "")) { $first = $uri; break; }
+  }
+  if ($first) { $s->image = $first; $s->save(); $fixed++; echo "Vessel $s->id: image \"$img\" -> \"$first\"\n"; }
+}
+echo "Vessels repaired: $fixed\n";' 2>&1 | tail -20
+
+echo ""
 echo "=== 6b. Reinstall stuck vessels (status=installing/install_failed) ==="
 cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
 $svc = app(\App\Services\Servers\ReinstallServerService::class);
