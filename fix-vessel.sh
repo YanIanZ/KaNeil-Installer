@@ -186,6 +186,18 @@ foreach ($stuck as $s) {
 }' 2>&1 | tail -40
 
 echo ""
+echo "=== 6c. Restart ship to force config refetch (clears cached vessel images) ==="
+if systemctl is-active --quiet ship; then
+  systemctl restart ship
+  sleep 3
+  if systemctl is-active --quiet ship; then
+    echo "ship restarted."
+  else
+    echo "WARNING: ship failed to restart - journalctl -u ship -n 50"
+  fi
+fi
+
+echo ""
 echo "=== 7. Verify ==="
 TIMEOUT_LOADED=$(cd "$PANEL_DIR" && sudo -u "$WEB_USER" php artisan tinker --execute='echo config("panel.guzzle.timeout");' 2>/dev/null | tail -1)
 echo "Effective GUZZLE_TIMEOUT: ${TIMEOUT_LOADED:-unknown}"
