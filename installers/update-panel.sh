@@ -150,6 +150,18 @@ chmod -R 775 $PANEL_DIR/storage $PANEL_DIR/bootstrap/cache 2>/dev/null || true
 # Clear stale compiled caches so cached classes match new file ownership/code.
 rm -f $PANEL_DIR/bootstrap/cache/*.php 2>/dev/null || true
 
+# Ensure Inertia root view points at galleon.blade.php (default 'app' missing in this fork)
+if [ -d "$PANEL_DIR/resources/js/galleon" ] && [ -f "$PANEL_DIR/resources/views/galleon.blade.php" ]; then
+  if [ ! -f "$PANEL_DIR/config/inertia.php" ] || ! grep -q "galleon" "$PANEL_DIR/config/inertia.php"; then
+    output "Writing config/inertia.php (root_view = galleon)..."
+    cat > "$PANEL_DIR/config/inertia.php" <<'PHP'
+<?php
+return ['root_view' => 'galleon'];
+PHP
+    chown "$WEB_USER":"$WEB_USER" "$PANEL_DIR/config/inertia.php" 2>/dev/null || true
+  fi
+fi
+
 # Run repair pass (docker_images, startup_commands, variables, server image refs)
 if php artisan list 2>/dev/null | grep -q "p:repair"; then
   output "Running data repair (p:repair)..."
@@ -227,13 +239,43 @@ output "Backup saved at: $BACKUP_DIR"
 
 output ""
 output "Running health check..."
-if timeout 30 php artisan about 2>&1 | grep -q 'KaNeil'; then
-  success "Panel health check passed!"
+HEALTH_OK=true
+if ! timeout 30 php artisan about 2>&1 | grep -q 'KaNeil'; then
+  HEALTH_OK=false
+  error "artisan about did not return KaNeil signature"
+fi
+
+# HTTP smoke test - hit local nginx, accept 200-399, treat 5xx as failure
+HTTP=$(curl -sk -o /tmp/smoke.html -w "%{http_code}" --max-time 15 "https://127.0.0.1/" 2>/dev/null || echo "000")
+if [ "${HTTP:0:1}" = "5" ] || [ "$HTTP" = "000" ]; then
+  HEALTH_OK=false
+  error "HTTP smoke test returned $HTTP (expected 2xx/3xx)"
+fi
+
+if [ "$HEALTH_OK" = true ]; then
+  success "Panel health check passed (HTTP $HTTP)!"
 else
-  error "Panel health check failed. Checking logs..."
-  echo "--- Last 20 lines of laravel.log ---"
-  tail -20 $PANEL_DIR/storage/logs/laravel.log 2>/dev/null || echo "No log file found."
-  echo "--- PHP errors ---"
-  php -r "require '$PANEL_DIR/vendor/autoload.php';" 2>&1 | head -3
+  error "Panel health check FAILED."
+  echo "--- Last 20 lines of laravel log ---"
+  tail -20 "$PANEL_DIR"/storage/logs/laravel-$(date +%Y-%m-%d).log 2>/dev/null \
+    || tail -20 "$PANEL_DIR"/storage/logs/laravel.log 2>/dev/null \
+    || echo "No log file found."
+  echo ""
+  if [ -d "$BACKUP_DIR" ]; then
+    echo "Auto-rollback: restoring $BACKUP_DIR -> $PANEL_DIR"
+    php artisan down 2>/dev/null || true
+    rsync -a --delete "$BACKUP_DIR/" "$PANEL_DIR/"
+    chown -R "$WEB_USER":"$WEB_USER" "$PANEL_DIR/storage" "$PANEL_DIR/bootstrap/cache" 2>/dev/null || true
+    (cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan optimize:clear >/dev/null 2>&1 || true)
+    (cd "$PANEL_DIR" && php artisan up 2>/dev/null || true)
+    for v in php8.5-fpm php8.4-fpm php8.3-fpm php8.2-fpm php-fpm; do
+      systemctl is-active --quiet "$v" 2>/dev/null && systemctl restart "$v" && break
+    done
+    error "Update reverted. Inspect $BACKUP_DIR and logs above before retrying."
+    exit 1
+  else
+    error "No backup directory at $BACKUP_DIR - manual recovery required."
+    exit 1
+  fi
 fi
 output ""
