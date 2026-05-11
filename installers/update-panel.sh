@@ -162,10 +162,34 @@ PHP
   fi
 fi
 
-# Run repair pass (docker_images, startup_commands, variables, server image refs)
+# Sync egg repositories into storage/eggs (used by p:map:import-bulk + p:repair).
+output "Syncing reference egg repositories..."
+mkdir -p "$PANEL_DIR/storage/eggs"
+sync_or_clone() {
+  local url="$1" dir="$2"
+  if [ -d "$dir/.git" ]; then
+    (cd "$dir" && git fetch --quiet --depth 1 origin && git reset --hard --quiet origin/HEAD) || true
+  elif [ ! -d "$dir" ]; then
+    git clone --quiet --depth 1 "$url" "$dir" 2>&1 | tail -3 || true
+  fi
+}
+sync_or_clone "https://github.com/parkervcp/eggs.git" "$PANEL_DIR/storage/eggs/parkervcp-eggs"
+chown -R "$WEB_USER":"$WEB_USER" "$PANEL_DIR/storage/eggs" 2>/dev/null || true
+
+# Bulk-import eggs as maps (idempotent: importer skips existing names).
+if php artisan list 2>/dev/null | grep -q "p:map:import-bulk"; then
+  for D in "$PANEL_DIR/storage/eggs/parkervcp-eggs"; do
+    if [ -d "$D" ]; then
+      output "Importing maps from $(basename "$D")..."
+      (cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan p:map:import-bulk "$D" 2>&1 | tail -10) || true
+    fi
+  done
+fi
+
+# Run repair pass (docker_images, startup_commands, variables, server image refs).
 if php artisan list 2>/dev/null | grep -q "p:repair"; then
   output "Running data repair (p:repair)..."
-  php artisan p:repair 2>&1 | tail -30 || true
+  (cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan p:repair 2>&1 | tail -30) || true
 fi
 
 # Restart PHP-FPM to clear OPcache
