@@ -52,7 +52,7 @@ output "Creating backup at $BACKUP_DIR..."
 cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
 
 if [ -z "$PANEL_DL_URL" ]; then
-  PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz"
+  PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/download/experimental-latest/panel.tar.gz"
 fi
 
 output "Downloading panel from $PANEL_DL_URL ..."
