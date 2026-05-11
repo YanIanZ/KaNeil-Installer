@@ -170,6 +170,70 @@ foreach (\App\Models\Server::with("map")->get() as $s) {
 echo "Vessels repaired: $fixed\n";' 2>&1 | tail -20
 
 echo ""
+echo "=== 6a3. Backfill missing variables on existing maps from egg JSON ==="
+for EGGS_DIR in "$PANEL_DIR/storage/eggs/game-wings" "$PANEL_DIR/storage/eggs/application-wings" "$PANEL_DIR/storage/eggs/game-eggs" "$PANEL_DIR/storage/eggs/application-eggs"; do
+  [ -d "$EGGS_DIR" ] || continue
+  echo "Scanning $EGGS_DIR"
+  cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp EGGS_DIR="$EGGS_DIR" php artisan tinker --execute='
+$dir = getenv("EGGS_DIR");
+$rii = new \RecursiveIteratorIterator(new \RecursiveDirectoryIterator($dir, \RecursiveDirectoryIterator::SKIP_DOTS));
+$added = 0; $maps = 0;
+foreach ($rii as $f) {
+  if (!$f->isFile() || $f->getExtension() !== "json" || !str_starts_with($f->getFilename(), "egg-")) continue;
+  $data = json_decode(file_get_contents($f->getPathname()), true);
+  if (!$data || empty($data["name"])) continue;
+  $map = \App\Models\Map::where("name", $data["name"])->first();
+  if (!$map) continue;
+  $vars = $data["variables"] ?? [];
+  if (!is_array($vars) || empty($vars)) continue;
+  $maps++;
+  foreach ($vars as $sort => $var) {
+    if (!is_array($var)) continue;
+    $env = $var["env_variable"] ?? null;
+    if (!$env || in_array($env, \App\Models\MapVariable::RESERVED_ENV_NAMES)) continue;
+    if (\App\Models\MapVariable::where("map_id", $map->id)->where("env_variable", $env)->exists()) continue;
+    $rules = $var["rules"] ?? "";
+    if (is_string($rules)) $rules = array_values(array_filter(array_map("trim", explode("|", $rules))));
+    if (!is_array($rules) || empty($rules)) $rules = ["nullable", "string"];
+    try {
+      \App\Models\MapVariable::create([
+        "map_id" => $map->id,
+        "sort" => $sort,
+        "name" => (string)($var["name"] ?? $env),
+        "description" => (string)($var["description"] ?? ""),
+        "env_variable" => $env,
+        "default_value" => (string)($var["default_value"] ?? ""),
+        "user_viewable" => (bool)($var["user_viewable"] ?? true),
+        "user_editable" => (bool)($var["user_editable"] ?? true),
+        "rules" => $rules,
+      ]);
+      $added++;
+    } catch (\Throwable $e) {}
+  }
+}
+echo "Maps touched: $maps, vars added: $added\n";' 2>&1 | tail -5
+done
+
+echo ""
+echo "=== 6a4. Backfill server variables for existing vessels (defaults from map) ==="
+cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
+$added = 0;
+foreach (\App\Models\Server::with("map.variables")->get() as $s) {
+  if (!$s->map) continue;
+  foreach ($s->map->variables as $mv) {
+    $exists = \App\Models\ServerVariable::where("server_id", $s->id)->where("variable_id", $mv->id)->exists();
+    if ($exists) continue;
+    \App\Models\ServerVariable::create([
+      "server_id" => $s->id,
+      "variable_id" => $mv->id,
+      "variable_value" => (string) $mv->default_value,
+    ]);
+    $added++;
+  }
+}
+echo "Server variables added: $added\n";' 2>&1 | tail -5
+
+echo ""
 echo "=== 6b. Reinstall stuck vessels (status=installing/install_failed) ==="
 cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
 $svc = app(\App\Services\Servers\ReinstallServerService::class);
