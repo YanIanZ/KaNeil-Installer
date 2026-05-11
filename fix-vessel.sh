@@ -90,8 +90,9 @@ systemctl reload nginx 2>/dev/null || true
 
 echo ""
 echo "=== 7. Verify ==="
-TIMEOUT_LOADED=$(cd "$PANEL_DIR" && php -r '$_ENV=array_merge($_ENV, parse_ini_file(".env")); $a=file_get_contents("config/panel.php"); preg_match("/GUZZLE_TIMEOUT.\s*(\d+)/", $a, $m); $d=$m[1]??"?"; echo getenv("GUZZLE_TIMEOUT") ?: $_ENV["GUZZLE_TIMEOUT"] ?? $d;')
-echo "Effective GUZZLE_TIMEOUT: $TIMEOUT_LOADED"
+TIMEOUT_LOADED=$(cd "$PANEL_DIR" && sudo -u "$WEB_USER" php artisan tinker --execute='echo config("panel.guzzle.timeout");' 2>/dev/null | tail -1)
+echo "Effective GUZZLE_TIMEOUT: ${TIMEOUT_LOADED:-unknown}"
+echo ".env GUZZLE_TIMEOUT line: $(grep ^GUZZLE_TIMEOUT= "$PANEL_DIR/.env" || echo MISSING)"
 
 echo "kaneil:    $(systemctl is-active kaneil 2>/dev/null)"
 echo "ship:      $(systemctl is-active ship 2>/dev/null)"
