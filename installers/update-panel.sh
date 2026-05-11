@@ -142,9 +142,13 @@ php artisan event:clear 2>/dev/null || true
 php artisan optimize:clear 2>/dev/null || true
 
 output "Setting permissions..."
-chmod -R 755 storage bootstrap/cache 2>/dev/null || true
-chown -R nginx:nginx storage bootstrap/cache 2>/dev/null || true
-chown -R nginx:nginx storage/logs 2>/dev/null || true
+# Detect web user: www-data on Ubuntu/Debian, nginx on Rocky/Alma.
+WEB_USER="www-data"
+id -u www-data >/dev/null 2>&1 || WEB_USER="nginx"
+chown -R "$WEB_USER":"$WEB_USER" $PANEL_DIR/storage $PANEL_DIR/bootstrap/cache 2>/dev/null || true
+chmod -R 775 $PANEL_DIR/storage $PANEL_DIR/bootstrap/cache 2>/dev/null || true
+# Clear stale compiled caches so cached classes match new file ownership/code.
+rm -f $PANEL_DIR/bootstrap/cache/*.php 2>/dev/null || true
 
 # Run repair pass (docker_images, startup_commands, variables, server image refs)
 if php artisan list 2>/dev/null | grep -q "p:repair"; then
