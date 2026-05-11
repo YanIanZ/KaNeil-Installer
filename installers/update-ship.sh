@@ -23,8 +23,13 @@ case "$(uname -m)" in
 esac
 
 output "Downloading latest ship binary..."
-curl -Lo /tmp/ship_latest "$SHIP_DL_BASE_URL$ARCH"
-chmod +x /tmp/ship_latest
+curl -fLo /tmp/ship.new "$SHIP_DL_BASE_URL$ARCH"
+if [ ! -s /tmp/ship.new ]; then
+  error "Downloaded ship binary is empty (check $SHIP_DL_BASE_URL$ARCH)"
+  rm -f /tmp/ship.new
+  exit 1
+fi
+chmod +x /tmp/ship.new
 
 # Stop ship service
 if systemctl is-active --quiet ship 2>/dev/null; then
@@ -36,7 +41,7 @@ fi
 cp /usr/local/bin/ship /usr/local/bin/ship.backup 2>/dev/null || true
 
 # Replace binary
-mv /tmp/ship_latest /usr/local/bin/ship
+mv /tmp/ship.new /usr/local/bin/ship
 chmod +x /usr/local/bin/ship
 
 # Remove old wings binary if it exists

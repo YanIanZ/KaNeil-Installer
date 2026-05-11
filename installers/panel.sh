@@ -121,7 +121,7 @@ ptdl_dl() {
 
 install_composer_deps() {
   output "Installing composer dependencies.."
-  [ "$OS" == "rocky" ] || [ "$OS" == "alma" ] && export PATH=/usr/local/bin:$PATH
+  [ "$OS" == "rocky" ] || [ "$OS" == "almalinux" ] && export PATH=/usr/local/bin:$PATH
 
   # Two-phase install: skip post-scripts on first pass (before APP_KEY exists),
   # generate APP_KEY + setup env, then run scripts manually.
@@ -455,6 +455,60 @@ configure_nginx() {
 
 # --------------- Main functions --------------- #
 
+setup_galleon() {
+  PANEL_DIR=/var/www/kaneil
+
+  # Detect Galleon UI and configure Inertia root_view + build frontend assets.
+  if [ -d "$PANEL_DIR/resources/js/galleon" ] && [ -f "$PANEL_DIR/resources/views/galleon.blade.php" ]; then
+    output "Galleon UI detected — configuring for Galleon panel..."
+
+    # Ensure Inertia root_view points to galleon.blade.php (default 'app' doesn't exist in this fork)
+    if [ ! -f "$PANEL_DIR/config/inertia.php" ] || ! grep -q "galleon" "$PANEL_DIR/config/inertia.php"; then
+      output "Writing config/inertia.php (root_view = galleon)..."
+      cat > "$PANEL_DIR/config/inertia.php" <<'PHP'
+<?php
+
+return [
+    'root_view' => 'galleon',
+];
+PHP
+    chown www-data:www-data "$PANEL_DIR/config/inertia.php" 2>/dev/null || chown nginx:nginx "$PANEL_DIR/config/inertia.php" 2>/dev/null || true
+    fi
+
+    # Branch tarballs may not ship built JS assets — build if public/build is missing.
+    if [ -f "$PANEL_DIR/package.json" ] && [ ! -d "$PANEL_DIR/public/build" ]; then
+      output "Building Galleon frontend assets..."
+      if ! command -v node >/dev/null 2>&1; then
+        output "Installing Node.js 22.x..."
+        curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1 || true
+        apt-get install -y nodejs >/dev/null 2>&1 || true
+      fi
+      if ! command -v yarn >/dev/null 2>&1; then
+        npm install -g yarn >/dev/null 2>&1 || true
+      fi
+      if command -v yarn >/dev/null 2>&1; then
+        (cd "$PANEL_DIR" && yarn install --frozen-lockfile >/dev/null 2>&1 && yarn build 2>&1 | tail -10) || output "WARNING: yarn build failed — panel may render without assets"
+      else
+        output "WARNING: yarn not available — frontend assets not built"
+      fi
+    fi
+
+    # Skip Filament asset publishing (panel providers are disabled in Galleon).
+    output "Galleon UI configured. Skipping Filament asset publishing."
+  else
+    # Standard panel — publish Filament assets.
+    output "Publishing Filament assets..."
+    php artisan filament:assets 2>/dev/null || true
+    php artisan filament:upgrade 2>/dev/null || true
+  fi
+
+  # Ensure APP_KEY exists (safety net for fresh installs)
+  if [ -f "$PANEL_DIR/.env" ] && ! grep -q "^APP_KEY=." "$PANEL_DIR/.env"; then
+    output "Generating APP_KEY..."
+    (cd "$PANEL_DIR" && php artisan key:generate --force 2>/dev/null) || true
+  fi
+}
+
 perform_install() {
   output "Starting installation.. this might take a while!"
   dep_install
@@ -464,6 +518,7 @@ perform_install() {
   create_db_user "$MYSQL_USER" "$MYSQL_PASSWORD"
   create_db "$MYSQL_DB" "$MYSQL_USER"
   configure
+  setup_galleon
   set_folder_permissions
   insert_cronjob
   install_kaneilq
