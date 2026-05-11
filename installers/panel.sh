@@ -212,10 +212,16 @@ set_folder_permissions() {
 insert_cronjob() {
   output "Installing cronjob.. "
 
-  crontab -l | {
-    cat
-    echo "* * * * * php /var/www/kaneil/artisan schedule:run >> /dev/null 2>&1"
-  } | crontab -
+  if crontab -l 2>/dev/null | grep -qF "kaneil/artisan schedule:run"; then
+    output "Cronjob already present, skipping."
+  else
+    (crontab -l 2>/dev/null; echo "* * * * * php /var/www/kaneil/artisan schedule:run >> /dev/null 2>&1") | crontab -
+  fi
+
+  if ! crontab -l 2>/dev/null | grep -qF "kaneil/artisan schedule:run"; then
+    error "Cronjob install failed - schedule:run not in crontab"
+    return 1
+  fi
 
   success "Cronjob installed!"
 }
@@ -223,7 +229,12 @@ insert_cronjob() {
 install_kaneilq() {
   output "Installing kaneilq service.."
 
-  curl -o /etc/systemd/system/kaneil.service "$GITHUB_URL"/configs/kaneil.service
+  curl -fSL -o /etc/systemd/system/kaneil.service "$GITHUB_URL"/configs/kaneil.service
+
+  if [ ! -s /etc/systemd/system/kaneil.service ]; then
+    error "Failed to fetch kaneil.service unit"
+    return 1
+  fi
 
   case "$OS" in
   debian | ubuntu)
@@ -234,8 +245,15 @@ install_kaneilq() {
     ;;
   esac
 
+  systemctl daemon-reload
   systemctl enable kaneil.service
-  systemctl start kaneil
+  systemctl restart kaneil
+
+  sleep 2
+  if ! systemctl is-active --quiet kaneil; then
+    error "kaneil queue worker failed to start - check: journalctl -u kaneil -n 50"
+    return 1
+  fi
 
   success "Installed kaneilq!"
 }

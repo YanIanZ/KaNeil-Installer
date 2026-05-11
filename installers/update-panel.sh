@@ -141,13 +141,42 @@ fi
 # Update crontab
 if ! crontab -l 2>/dev/null | grep -q "schedule:run"; then
   output "Installing cronjob..."
-  crontab -l 2>/dev/null | { cat; echo "* * * * * php $PANEL_DIR/artisan schedule:run >> /dev/null 2>&1"; } | crontab -
+  (crontab -l 2>/dev/null; echo "* * * * * php $PANEL_DIR/artisan schedule:run >> /dev/null 2>&1") | crontab -
 fi
 
-# Restart services
-if systemctl is-active --quiet kaneil 2>/dev/null; then
+# Repair queue worker unit if missing
+if [ ! -f /etc/systemd/system/kaneil.service ]; then
+  output "kaneil.service missing - reinstalling queue worker unit..."
+  GITHUB_URL="${GITHUB_URL:-https://raw.githubusercontent.com/YanIanZ/KaNeil-Installer/main}"
+  if curl -fSL -o /etc/systemd/system/kaneil.service "$GITHUB_URL"/configs/kaneil.service && [ -s /etc/systemd/system/kaneil.service ]; then
+    if [ -f /etc/os-release ] && grep -qi "ubuntu\|debian" /etc/os-release; then
+      sed -i -e "s@<user>@www-data@g" /etc/systemd/system/kaneil.service
+    else
+      sed -i -e "s@<user>@nginx@g" /etc/systemd/system/kaneil.service
+    fi
+    systemctl daemon-reload
+    systemctl enable kaneil.service 2>/dev/null || true
+  fi
+fi
+
+# Restart (or start) queue worker
+if [ -f /etc/systemd/system/kaneil.service ]; then
   output "Restarting KaNeil queue worker..."
-  systemctl restart kaneil 2>/dev/null || true
+  systemctl restart kaneil 2>/dev/null || systemctl start kaneil 2>/dev/null || true
+  sleep 2
+  if ! systemctl is-active --quiet kaneil; then
+    output "WARNING: kaneil queue worker not active - check: journalctl -u kaneil -n 50"
+  fi
+fi
+
+# Ensure GUZZLE_TIMEOUT >= 30 in .env (panel->ship callback can exceed 15s)
+if [ -f "$PANEL_DIR/.env" ]; then
+  if ! grep -q "^GUZZLE_TIMEOUT=" "$PANEL_DIR/.env"; then
+    echo "GUZZLE_TIMEOUT=30" >> "$PANEL_DIR/.env"
+  fi
+  if ! grep -q "^GUZZLE_CONNECT_TIMEOUT=" "$PANEL_DIR/.env"; then
+    echo "GUZZLE_CONNECT_TIMEOUT=10" >> "$PANEL_DIR/.env"
+  fi
 fi
 
 if systemctl is-active --quiet nginx 2>/dev/null; then
