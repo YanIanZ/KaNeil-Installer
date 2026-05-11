@@ -170,6 +170,27 @@ foreach (\App\Models\Server::with("map")->get() as $s) {
 echo "Vessels repaired: $fixed\n";' 2>&1 | tail -20
 
 echo ""
+echo "=== 6a2b. Rename numeric-key startup_commands to {Default: ...} ==="
+cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
+$fixed = 0;
+foreach (\App\Models\Map::all() as $m) {
+  $cmds = $m->startup_commands;
+  if (!is_array($cmds) || empty($cmds)) continue;
+  // already named (string keys) -> skip
+  $hasStringKey = false;
+  foreach (array_keys($cmds) as $k) { if (!is_int($k)) { $hasStringKey = true; break; } }
+  if ($hasStringKey) continue;
+  $new = [];
+  foreach (array_values($cmds) as $i => $v) {
+    $new[$i === 0 ? "Default" : ("Command " . ($i + 1))] = $v;
+  }
+  $m->startup_commands = $new;
+  $m->save();
+  $fixed++;
+}
+echo "Maps relabeled: $fixed\n";' 2>&1 | tail -5
+
+echo ""
 echo "=== 6a3. Backfill missing variables on existing maps from egg JSON ==="
 for EGGS_DIR in "$PANEL_DIR/storage/eggs/game-wings" "$PANEL_DIR/storage/eggs/application-wings" "$PANEL_DIR/storage/eggs/game-eggs" "$PANEL_DIR/storage/eggs/application-eggs"; do
   [ -d "$EGGS_DIR" ] || continue
