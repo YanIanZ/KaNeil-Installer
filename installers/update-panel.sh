@@ -128,6 +128,12 @@ chmod -R 755 storage bootstrap/cache 2>/dev/null || true
 chown -R nginx:nginx storage bootstrap/cache 2>/dev/null || true
 chown -R nginx:nginx storage/logs 2>/dev/null || true
 
+# Run repair pass (docker_images, startup_commands, variables, server image refs)
+if php artisan list 2>/dev/null | grep -q "p:repair"; then
+  output "Running data repair (p:repair)..."
+  php artisan p:repair 2>&1 | tail -30 || true
+fi
+
 # Restart PHP-FPM to clear OPcache
 output "Restarting PHP-FPM to clear OPcache..."
 if systemctl is-active --quiet php8.5-fpm 2>/dev/null; then
@@ -167,6 +173,12 @@ if [ -f /etc/systemd/system/kaneil.service ]; then
   if ! systemctl is-active --quiet kaneil; then
     output "WARNING: kaneil queue worker not active - check: journalctl -u kaneil -n 50"
   fi
+fi
+
+# Restart ship to refetch repaired vessel configs
+if systemctl is-active --quiet ship 2>/dev/null; then
+  output "Restarting ship to refetch vessel configs..."
+  systemctl restart ship 2>/dev/null || true
 fi
 
 # Ensure GUZZLE_TIMEOUT >= 30 in .env (panel->ship callback can exceed 15s)
