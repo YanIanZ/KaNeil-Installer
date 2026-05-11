@@ -99,6 +99,22 @@ echo "=== 6. Reload nginx ==="
 systemctl reload nginx 2>/dev/null || true
 
 echo ""
+echo "=== 6b. Reinstall stuck vessels (status=installing/install_failed) ==="
+cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
+$svc = app(\App\Services\Servers\ReinstallServerService::class);
+$stuck = \App\Models\Server::whereIn("status", ["installing","install_failed"])->get();
+if ($stuck->isEmpty()) { echo "No stuck vessels.\n"; exit; }
+foreach ($stuck as $s) {
+  try {
+    echo "Reinstalling vessel id=$s->id uuid=$s->uuid\n";
+    $svc->handle($s);
+    echo "  triggered.\n";
+  } catch (\Throwable $e) {
+    echo "  FAILED: ".$e->getMessage()."\n";
+  }
+}' 2>&1 | tail -40
+
+echo ""
 echo "=== 7. Verify ==="
 TIMEOUT_LOADED=$(cd "$PANEL_DIR" && sudo -u "$WEB_USER" php artisan tinker --execute='echo config("panel.guzzle.timeout");' 2>/dev/null | tail -1)
 echo "Effective GUZZLE_TIMEOUT: ${TIMEOUT_LOADED:-unknown}"
