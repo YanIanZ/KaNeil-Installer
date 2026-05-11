@@ -86,7 +86,7 @@ dep_install() {
       $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list >/dev/null
     ;;
 
-  rocky | alma)
+  rocky | almalinux | alma)
     install_packages "dnf-utils"
     dnf config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
 
@@ -115,9 +115,16 @@ ptdl_dl() {
   echo "* Downloading KaNeil Ship.. "
 
   mkdir -p /etc/kaneil
-  curl -L -o /usr/local/bin/ship "$SHIP_DL_BASE_URL$ARCH"
-
-  chmod u+x /usr/local/bin/ship
+  # Stage in /tmp then atomic mv so an interrupted curl never leaves a
+  # partial binary at /usr/local/bin/ship that systemd would refuse to start.
+  curl -fL -o /tmp/ship.new "$SHIP_DL_BASE_URL$ARCH"
+  if [ ! -s /tmp/ship.new ]; then
+    error "Downloaded ship binary is empty (check $SHIP_DL_BASE_URL$ARCH)"
+    rm -f /tmp/ship.new
+    return 1
+  fi
+  chmod u+x /tmp/ship.new
+  mv /tmp/ship.new /usr/local/bin/ship
 
   success "KaNeil Ship downloaded successfully"
 }
@@ -125,7 +132,11 @@ ptdl_dl() {
 systemd_file() {
   output "Installing systemd service.."
 
-  curl -o /etc/systemd/system/ship.service "$GITHUB_URL"/configs/ship.service
+  curl -fSL -o /etc/systemd/system/ship.service "$GITHUB_URL"/configs/ship.service
+  if [ ! -s /etc/systemd/system/ship.service ]; then
+    error "Failed to fetch ship.service unit ($GITHUB_URL/configs/ship.service)"
+    return 1
+  fi
   systemctl daemon-reload
   systemctl enable ship
 
@@ -177,7 +188,7 @@ configure_mysql() {
     debian | ubuntu)
       sed -i 's/127.0.0.1/0.0.0.0/g' /etc/mysql/mariadb.conf.d/50-server.cnf
       ;;
-    rocky | alma)
+    rocky | almalinux | alma)
       sed -i 's/^#bind-address=0.0.0.0$/bind-address=0.0.0.0/' /etc/my.cnf.d/mariadb-server.cnf
       ;;
     esac

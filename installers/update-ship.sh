@@ -14,7 +14,7 @@ if [ ! -f "/usr/local/bin/ship" ]; then
 fi
 
 # Get current version
-output "Current ship: $($KANEIL_SHIP_VERSION 2>/dev/null || /usr/local/bin/ship --version 2>/dev/null || echo "unknown")"
+output "Current ship: $(/usr/local/bin/ship --version 2>/dev/null || echo "unknown")"
 
 # Detect architecture
 ARCH="amd64"

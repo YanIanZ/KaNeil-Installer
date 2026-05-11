@@ -203,7 +203,7 @@ set_folder_permissions() {
   debian | ubuntu)
     chown -R www-data:www-data /var/www/kaneil
     ;;
-  rocky | alma)
+  rocky | almalinux | alma)
     chown -R nginx:nginx /var/www/kaneil
     ;;
   esac
@@ -240,7 +240,7 @@ install_kaneilq() {
   debian | ubuntu)
     sed -i -e "s@<user>@www-data@g" /etc/systemd/system/kaneil.service
     ;;
-  rocky | alma)
+  rocky | almalinux | alma)
     sed -i -e "s@<user>@nginx@g" /etc/systemd/system/kaneil.service
     ;;
   esac
@@ -266,7 +266,7 @@ enable_services() {
     systemctl enable redis-server
     systemctl start redis-server
     ;;
-  rocky | alma)
+  rocky | almalinux | alma)
     systemctl enable redis
     systemctl start redis
     ;;
@@ -345,7 +345,7 @@ dep_install() {
     [ "$CONFIGURE_LETSENCRYPT" == true ] && install_packages "certbot python3-certbot-nginx"
 
     ;;
-  rocky | alma)
+  rocky | almalinux | alma)
     alma_rocky_dep
 
     # Install dependencies
@@ -425,7 +425,7 @@ configure_nginx() {
     CONFIG_PATH_AVAIL="/etc/nginx/sites-available"
     CONFIG_PATH_ENABL="/etc/nginx/sites-enabled"
     ;;
-  rocky | alma)
+  rocky | almalinux | alma)
     PHP_SOCKET="/var/run/php-fpm/kaneil.sock"
     CONFIG_PATH_AVAIL="/etc/nginx/conf.d"
     CONFIG_PATH_ENABL="$CONFIG_PATH_AVAIL"

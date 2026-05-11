@@ -16,10 +16,15 @@ echo "Ship version: $(/usr/local/bin/ship --version 2>/dev/null || echo 'v1.0.0'
 echo "=== 4. Update panel ==="
 cd /var/www/kaneil
 cp .env /tmp/kaneil.env.bak
-curl -sSL -o /tmp/panel.tar.gz https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz
+PANEL_DL_URL="${PANEL_DL_URL:-https://github.com/YanIanZ/KaNeil-Panel/releases/download/experimental-latest/panel.tar.gz}"
+curl -fsSL -o /tmp/panel.tar.gz "$PANEL_DL_URL"
 tar -xzf /tmp/panel.tar.gz --overwrite
 cp /tmp/kaneil.env.bak .env
 rm -f /tmp/panel.tar.gz /tmp/kaneil.env.bak
+
+# Detect web user (www-data on Ubuntu/Debian, nginx elsewhere)
+WEB_USER="www-data"
+id -u www-data >/dev/null 2>&1 || WEB_USER="nginx"
 
 echo "=== 5. Composer install ==="
 composer install --no-dev --optimize-autoloader --no-interaction 2>&1 | tail -3
@@ -37,8 +42,8 @@ echo "=== 9. Clear all caches ==="
 php artisan optimize:clear 2>&1 | tail -3
 
 echo "=== 10. Set permissions ==="
-chmod -R 755 storage bootstrap/cache
-chown -R nginx:nginx storage bootstrap/cache 2>/dev/null || true
+chmod -R 775 storage bootstrap/cache
+chown -R "$WEB_USER":"$WEB_USER" storage bootstrap/cache 2>/dev/null || true
 
 echo "=== 11. Ensure GUZZLE_TIMEOUT in .env ==="
 if ! grep -q "^GUZZLE_TIMEOUT=" /var/www/kaneil/.env; then
@@ -79,11 +84,18 @@ else
 fi
 
 echo "=== 14. Restart services ==="
-systemctl restart php8.5-fpm nginx ship
+for v in php8.5-fpm php8.4-fpm php8.3-fpm php8.2-fpm php-fpm; do
+  if systemctl is-active --quiet "$v" 2>/dev/null; then
+    systemctl restart "$v" && echo "  Restarted $v"
+    break
+  fi
+done
+systemctl restart nginx 2>/dev/null || true
+systemctl restart ship 2>/dev/null || true
 
 echo ""
-echo "DONE. Panel: https://panel.shandy.live"
-echo "Check maps: https://panel.shandy.live/admin/maps"
-echo "Check ship: ship diagnostics"
+APP_URL=$(grep -E '^APP_URL=' /var/www/kaneil/.env 2>/dev/null | cut -d= -f2-)
+echo "DONE. Panel: ${APP_URL:-(set APP_URL in .env)}"
+echo "Maps:  ${APP_URL:-...}/admin/maps"
 echo "Queue: systemctl status kaneil"
-echo "Cron: crontab -l"
+echo "Cron:  crontab -l"

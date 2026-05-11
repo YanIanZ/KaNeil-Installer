@@ -49,7 +49,15 @@ cp $PANEL_DIR/.env /tmp/kaneil.env.backup
 
 BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
 output "Creating backup at $BACKUP_DIR..."
-cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
+if ! cp -a "$PANEL_DIR" "$BACKUP_DIR"; then
+  error "Failed to create backup at $BACKUP_DIR. Aborting update so the live install is not at risk."
+  exit 1
+fi
+if [ ! -f "$BACKUP_DIR/artisan" ]; then
+  error "Backup at $BACKUP_DIR looks incomplete (no artisan). Aborting."
+  rm -rf "$BACKUP_DIR"
+  exit 1
+fi
 
 if [ -z "$PANEL_DL_URL" ]; then
   PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/download/experimental-latest/panel.tar.gz"
@@ -99,14 +107,19 @@ fi
 mkdir -p $PANEL_DIR/storage/framework/views $PANEL_DIR/storage/framework/cache $PANEL_DIR/storage/framework/sessions $PANEL_DIR/storage/logs $PANEL_DIR/storage/app
 
 output "Updating composer dependencies (with retry)..."
-if ! run_with_retry "cd $PANEL_DIR && composer install --no-dev --optimize-autoloader --no-interaction"; then
-  COMPOSER_OUTPUT=$(cd $PANEL_DIR && composer install --no-dev --optimize-autoloader --no-interaction 2>&1)
+if ! run_with_retry "cd $PANEL_DIR && COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction"; then
+  COMPOSER_OUTPUT=$(cd $PANEL_DIR && COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --optimize-autoloader --no-interaction 2>&1)
   error "Composer update failed after 3 retries:"
   echo "$COMPOSER_OUTPUT" | tail -20
-  error "Rolling back..."
-  rm -rf $PANEL_DIR/*
-  cp -r $BACKUP_DIR/* $PANEL_DIR/
-  php artisan up 2>/dev/null || true
+  error "Rolling back from $BACKUP_DIR..."
+  if command -v rsync >/dev/null 2>&1; then
+    rsync -a --delete "$BACKUP_DIR/" "$PANEL_DIR/"
+  else
+    # Fallback: ensure dotfiles are restored too
+    rm -rf "$PANEL_DIR"
+    cp -a "$BACKUP_DIR" "$PANEL_DIR"
+  fi
+  (cd "$PANEL_DIR" && php artisan up 2>/dev/null || true)
   exit 1
 fi
 
@@ -206,12 +219,17 @@ fi
 
 # Restart PHP-FPM to clear OPcache
 output "Restarting PHP-FPM to clear OPcache..."
-if systemctl is-active --quiet php8.5-fpm 2>/dev/null; then
-  systemctl restart php8.5-fpm 2>/dev/null || true
-elif systemctl is-active --quiet php8.4-fpm 2>/dev/null; then
-  systemctl restart php8.4-fpm 2>/dev/null || true
-elif systemctl is-active --quiet php-fpm 2>/dev/null; then
-  systemctl restart php-fpm 2>/dev/null || true
+PHP_FPM_RESTARTED=false
+for v in php8.5-fpm php8.4-fpm php8.3-fpm php8.2-fpm php-fpm; do
+  if systemctl is-active --quiet "$v" 2>/dev/null; then
+    systemctl restart "$v" 2>/dev/null || true
+    output "  Restarted $v"
+    PHP_FPM_RESTARTED=true
+    break
+  fi
+done
+if [ "$PHP_FPM_RESTARTED" = false ]; then
+  output "WARNING: no active php-fpm service detected to restart."
 fi
 
 # Update crontab
@@ -281,11 +299,13 @@ if ! timeout 30 php artisan about 2>&1 | grep -q 'KaNeil'; then
   error "artisan about did not return KaNeil signature"
 fi
 
-# HTTP smoke test - hit local nginx, accept 200-399, treat 5xx as failure
-HTTP=$(curl -sk -o /tmp/smoke.html -w "%{http_code}" --max-time 15 "https://127.0.0.1/" 2>/dev/null || echo "000")
-if [ "${HTTP:0:1}" = "5" ] || [ "$HTTP" = "000" ]; then
+# HTTP smoke test - hit local nginx with correct Host header. Only 2xx/3xx is OK.
+SMOKE_HOST=$(grep -E '^APP_URL=' "$PANEL_DIR/.env" 2>/dev/null | sed -E 's@^APP_URL=https?://([^/]+).*@\1@')
+[ -z "$SMOKE_HOST" ] && SMOKE_HOST=$(hostname -f 2>/dev/null || hostname)
+HTTP=$(curl -sk -o /tmp/smoke.html -w "%{http_code}" --max-time 15 -H "Host: $SMOKE_HOST" "https://127.0.0.1/" 2>/dev/null || echo "000")
+if ! [[ "$HTTP" =~ ^[23][0-9][0-9]$ ]]; then
   HEALTH_OK=false
-  error "HTTP smoke test returned $HTTP (expected 2xx/3xx)"
+  error "HTTP smoke test returned $HTTP for Host $SMOKE_HOST (expected 2xx/3xx)"
 fi
 
 if [ "$HEALTH_OK" = true ]; then
