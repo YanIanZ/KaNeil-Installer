@@ -51,17 +51,18 @@ BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
 output "Creating backup at $BACKUP_DIR..."
 cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
 
+PANEL_BRANCH="${PANEL_BRANCH:-experimental/v2.0-EX}"
 if [ -z "$PANEL_DL_URL" ]; then
-  PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz"
+  PANEL_DL_URL="https://codeload.github.com/YanIanZ/KaNeil-Panel/tar.gz/refs/heads/${PANEL_BRANCH}"
 fi
 
-output "Downloading latest panel release to /tmp..."
+output "Downloading panel from branch '$PANEL_BRANCH' to /tmp..."
 cd /tmp
 rm -f panel.tar.gz
-curl -sSL -o panel.tar.gz "$PANEL_DL_URL"
+curl -fsSL -o panel.tar.gz "$PANEL_DL_URL"
 
 if [ ! -f panel.tar.gz ] || [ $(stat -c%s panel.tar.gz 2>/dev/null || stat -f%z panel.tar.gz 2>/dev/null || echo 0) -lt 100000 ]; then
-  error "Failed to download panel.tar.gz or file too small"
+  error "Failed to download panel.tar.gz or file too small ($PANEL_DL_URL)"
   exit 1
 fi
 output "Downloaded panel.tar.gz successfully"
@@ -82,7 +83,9 @@ rm -rf bootstrap/cache/* 2>/dev/null || true
 rm -rf vendor 2>/dev/null || true
 
 output "Extracting fresh panel..."
-tar -xzf /tmp/panel.tar.gz
+# codeload tarballs wrap content in a top-level dir (e.g. KaNeil-Panel-experimental-v2.0-EX/)
+# Strip that wrapper so files land directly in $PANEL_DIR.
+tar -xzf /tmp/panel.tar.gz -C $PANEL_DIR --strip-components=1
 rm -f /tmp/panel.tar.gz
 
 output "Restoring .env file..."
@@ -102,6 +105,24 @@ if ! run_with_retry "cd $PANEL_DIR && composer install --no-dev --optimize-autol
   cp -r $BACKUP_DIR/* $PANEL_DIR/
   php artisan up 2>/dev/null || true
   exit 1
+fi
+
+# Branch tarballs don't ship built JS assets - run yarn build.
+if [ -f $PANEL_DIR/package.json ] && [ ! -d $PANEL_DIR/public/build ]; then
+  output "Building frontend assets..."
+  if ! command -v node >/dev/null 2>&1; then
+    output "Installing Node.js 22.x..."
+    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - >/dev/null 2>&1 || true
+    apt-get install -y nodejs >/dev/null 2>&1 || true
+  fi
+  if ! command -v yarn >/dev/null 2>&1; then
+    npm install -g yarn >/dev/null 2>&1 || true
+  fi
+  if command -v yarn >/dev/null 2>&1; then
+    (cd $PANEL_DIR && yarn install --frozen-lockfile >/dev/null 2>&1 && yarn build 2>&1 | tail -10) || output "WARNING: yarn build failed - panel may render without assets"
+  else
+    output "WARNING: yarn not available - frontend assets not built"
+  fi
 fi
 
 output "Running database migrations (with retry)..."
