@@ -68,7 +68,8 @@ cd /tmp
 rm -f panel.tar.gz
 curl -sSL -o panel.tar.gz "$PANEL_DL_URL"
 
-if [ ! -f panel.tar.gz ] || [ $(stat -c%s panel.tar.gz 2>/dev/null || stat -f%z panel.tar.gz 2>/dev/null || echo 0) -lt 100000 ]; then
+FILE_SIZE=$(stat -c%s panel.tar.gz 2>/dev/null || stat -f%z panel.tar.gz 2>/dev/null || echo 0)
+if [ ! -f panel.tar.gz ] || [ "$FILE_SIZE" -lt 100000 ]; then
   error "Failed to download panel.tar.gz or file too small ($PANEL_DL_URL)"
   exit 1
 fi
@@ -203,12 +204,11 @@ chown -R "$WEB_USER":"$WEB_USER" "$PANEL_DIR/storage/eggs" 2>/dev/null || true
 
 # Bulk-import eggs as maps (idempotent: importer skips existing names).
 if php artisan list 2>/dev/null | grep -q "p:map:import-bulk"; then
-  for D in "$PANEL_DIR/storage/eggs/parkervcp-eggs"; do
-    if [ -d "$D" ]; then
-      output "Importing maps from $(basename "$D")..."
-      (cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan p:map:import-bulk "$D" 2>&1 | tail -10) || true
-    fi
-  done
+  D="$PANEL_DIR/storage/eggs/parkervcp-eggs"
+  if [ -d "$D" ]; then
+    output "Importing maps from $(basename "$D")..."
+    (cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan p:map:import-bulk "$D" 2>&1 | tail -10) || true
+  fi
 fi
 
 # Run repair pass (docker_images, startup_commands, variables, server image refs).
@@ -313,7 +313,7 @@ if [ "$HEALTH_OK" = true ]; then
 else
   error "Panel health check FAILED."
   echo "--- Last 20 lines of laravel log ---"
-  tail -20 "$PANEL_DIR"/storage/logs/laravel-$(date +%Y-%m-%d).log 2>/dev/null \
+  tail -20 "$PANEL_DIR"/storage/logs/laravel-"$(date +%Y-%m-%d)".log 2>/dev/null \
     || tail -20 "$PANEL_DIR"/storage/logs/laravel.log 2>/dev/null \
     || echo "No log file found."
   echo ""

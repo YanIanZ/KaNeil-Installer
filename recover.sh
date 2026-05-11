@@ -94,8 +94,15 @@ systemctl restart kaneil 2>/dev/null || true
 
 echo ""
 echo "=== 8. Smoke test ==="
-HTTP=$(curl -sk -o /dev/null -w "%{http_code}" https://localhost/ -H "Host: $(hostname -f)" 2>/dev/null)
+SMOKE_HOST=$(grep -E '^APP_URL=' "$PANEL_DIR/.env" 2>/dev/null | sed -E 's@^APP_URL=https?://([^/]+).*@\1@')
+[ -z "$SMOKE_HOST" ] && SMOKE_HOST=$(hostname -f 2>/dev/null || hostname)
+HTTP=$(curl -sk -o /dev/null -w "%{http_code}" --max-time 15 -H "Host: $SMOKE_HOST" https://localhost/ 2>/dev/null || echo "000")
 echo "  Local HTTPS: $HTTP"
+if [[ "$HTTP" =~ ^[23][0-9][0-9]$ ]]; then
+  echo "  Smoke test PASSED (HTTP $HTTP)"
+else
+  echo "  WARNING: Smoke test returned $HTTP (expected 2xx/3xx)"
+fi
 (cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan --version 2>&1 | tail -1)
 
 echo ""
