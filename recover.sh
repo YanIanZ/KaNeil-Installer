@@ -50,6 +50,21 @@ chown "$WEB_USER":"$WEB_USER" "$PANEL_DIR/.env" 2>/dev/null
 echo "  Owner: $WEB_USER"
 
 echo ""
+echo "=== 4b. Ensure config/inertia.php points root view to galleon ==="
+if [ -d "$PANEL_DIR/resources/js/galleon" ] && [ -f "$PANEL_DIR/resources/views/galleon.blade.php" ]; then
+  if [ ! -f "$PANEL_DIR/config/inertia.php" ] || ! grep -q "galleon" "$PANEL_DIR/config/inertia.php"; then
+    cat > "$PANEL_DIR/config/inertia.php" <<'PHP'
+<?php
+return ['root_view' => 'galleon'];
+PHP
+    chown "$WEB_USER":"$WEB_USER" "$PANEL_DIR/config/inertia.php"
+    echo "  Wrote config/inertia.php"
+  else
+    echo "  config/inertia.php already correct."
+  fi
+fi
+
+echo ""
 echo "=== 5. Clear stale caches ==="
 rm -f "$PANEL_DIR/bootstrap/cache/"*.php 2>/dev/null
 rm -rf "$PANEL_DIR/storage/framework/views/"* 2>/dev/null
