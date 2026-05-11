@@ -102,7 +102,7 @@ echo ""
 echo "=== 6a0. Rewrite stale ghcr.io/kaneil-dev/* image URIs (registry doesn't exist) ==="
 cd "$PANEL_DIR" && sudo -u "$WEB_USER" HOME=/tmp php artisan tinker --execute='
 $mapFixed = 0; $svrFixed = 0;
-$rewrite = function(string $u): string { return str_replace("ghcr.io/kaneil-dev/", "ghcr.io/pterodactyl/", $u); };
+$rewrite = function(string $u): string { return str_replace("ghcr.io/kaneil-dev/", "ghcr.io/parkervcp/", $u); };
 foreach (\App\Models\Map::all() as $m) {
   $changed = false;
   $imgs = $m->docker_images ?? [];
