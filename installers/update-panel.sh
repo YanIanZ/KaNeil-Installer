@@ -51,15 +51,14 @@ BACKUP_DIR=/var/www/kaneil_backup_$(date +%Y%m%d_%H%M%S)
 output "Creating backup at $BACKUP_DIR..."
 cp -r $PANEL_DIR $BACKUP_DIR 2>/dev/null || true
 
-PANEL_BRANCH="${PANEL_BRANCH:-experimental/v2.0-EX}"
 if [ -z "$PANEL_DL_URL" ]; then
-  PANEL_DL_URL="https://codeload.github.com/YanIanZ/KaNeil-Panel/tar.gz/refs/heads/${PANEL_BRANCH}"
+  PANEL_DL_URL="https://github.com/YanIanZ/KaNeil-Panel/releases/latest/download/panel.tar.gz"
 fi
 
-output "Downloading panel from branch '$PANEL_BRANCH' to /tmp..."
+output "Downloading panel from $PANEL_DL_URL ..."
 cd /tmp
 rm -f panel.tar.gz
-curl -fsSL -o panel.tar.gz "$PANEL_DL_URL"
+curl -sSL -o panel.tar.gz "$PANEL_DL_URL"
 
 if [ ! -f panel.tar.gz ] || [ $(stat -c%s panel.tar.gz 2>/dev/null || stat -f%z panel.tar.gz 2>/dev/null || echo 0) -lt 100000 ]; then
   error "Failed to download panel.tar.gz or file too small ($PANEL_DL_URL)"
@@ -83,9 +82,7 @@ rm -rf bootstrap/cache/* 2>/dev/null || true
 rm -rf vendor 2>/dev/null || true
 
 output "Extracting fresh panel..."
-# codeload tarballs wrap content in a top-level dir (e.g. KaNeil-Panel-experimental-v2.0-EX/)
-# Strip that wrapper so files land directly in $PANEL_DIR.
-tar -xzf /tmp/panel.tar.gz -C $PANEL_DIR --strip-components=1
+tar -xzf /tmp/panel.tar.gz
 rm -f /tmp/panel.tar.gz
 
 output "Restoring .env file..."
