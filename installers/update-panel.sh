@@ -89,6 +89,12 @@ output "Restoring .env file..."
 cp /tmp/kaneil.env.backup $PANEL_DIR/.env
 rm -f /tmp/kaneil.env.backup
 
+# Ensure APP_KEY exists (fresh installs or corrupted .env)
+if ! grep -q "^APP_KEY=." "$PANEL_DIR/.env"; then
+  output "Generating APP_KEY..."
+  cd $PANEL_DIR && php artisan key:generate --force 2>/dev/null || true
+fi
+
 # Create storage dirs if missing after extract
 mkdir -p $PANEL_DIR/storage/framework/views $PANEL_DIR/storage/framework/cache $PANEL_DIR/storage/framework/sessions $PANEL_DIR/storage/logs $PANEL_DIR/storage/app
 
@@ -130,8 +136,14 @@ if ! run_with_retry "cd $PANEL_DIR && timeout 120 php artisan migrate --force"; 
 fi
 
 output "Publishing filament assets..."
-php artisan filament:assets 2>/dev/null || true
-php artisan filament:upgrade 2>/dev/null || true
+# Filament panel providers are disabled in experimental/v2.0-EX (Galleon UI).
+# Skip filament:assets/upgrade when Galleon is active to avoid errors.
+if [ -d "$PANEL_DIR/resources/js/galleon" ] && [ -f "$PANEL_DIR/resources/views/galleon.blade.php" ]; then
+  output "Galleon UI detected — skipping Filament asset publishing."
+else
+  php artisan filament:assets 2>/dev/null || true
+  php artisan filament:upgrade 2>/dev/null || true
+fi
 
 output "Clearing all caches..."
 php artisan config:clear 2>/dev/null || true
